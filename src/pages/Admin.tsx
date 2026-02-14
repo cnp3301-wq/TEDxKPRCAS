@@ -164,6 +164,58 @@ const AdminPage = () => {
           </div>
         </motion.div>
 
+        {/* Speakers Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-10"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold">
+              Featured <span className="text-primary">Speakers</span>
+            </h2>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            {[
+              { name: "Speaker 1", role: "Industry Expert", initial: "S1" },
+              { name: "Speaker 2", role: "Tech Innovator", initial: "S2" },
+              { name: "Speaker 3", role: "Business Leader", initial: "S3" },
+            ].map((speaker, i) => (
+              <motion.div
+                key={speaker.name}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + i * 0.1 }}
+                whileHover={{
+                  y: -8,
+                  boxShadow: "0 20px 40px hsl(var(--primary) / 0.15)",
+                  borderColor: "hsl(var(--primary) / 0.6)",
+                }}
+                className="border border-primary/30 rounded-xl p-6 transition-colors group cursor-pointer bg-card/50 backdrop-blur-sm hover:bg-card/70"
+              >
+                <motion.div
+                  className="w-full aspect-square bg-secondary rounded-lg mb-6 flex items-center justify-center overflow-hidden relative"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <motion.span
+                    className="font-heading text-6xl text-primary/30 group-hover:text-primary/60 transition-colors"
+                    whileHover={{ scale: 1.2, rotate: 5 }}
+                  >
+                    {speaker.initial}
+                  </motion.span>
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
+                </motion.div>
+                <h3 className="font-heading text-xl font-bold text-foreground uppercase">{speaker.name}</h3>
+                <p className="text-primary font-heading text-xs uppercase tracking-wider mt-2">{speaker.role}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Filters Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
