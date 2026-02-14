@@ -1,10 +1,24 @@
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Calendar, Users } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
-
-const GOOGLE_FORM_LINK = "#";
+import { useState, useEffect } from "react";
 
 const HeroSection = () => {
+  const [registrationLink, setRegistrationLink] = useState("https://forms.gle/example");
+
+  useEffect(() => {
+    // Get registration link from localStorage (set by admin)
+    const savedContact = localStorage.getItem("tedx_contact");
+    if (savedContact) {
+      try {
+        const contactData = JSON.parse(savedContact);
+        setRegistrationLink(contactData.registrationLink || "https://forms.gle/example");
+      } catch (e) {
+        console.error("Error parsing contact data:", e);
+      }
+    }
+  }, []);
+
   return (
     <section id="home" className="min-h-screen flex items-center justify-center pt-16 relative overflow-hidden">
       <AnimatedBackground variant="hero" particleCount={12} />
@@ -73,7 +87,7 @@ const HeroSection = () => {
           className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
         >
           <motion.a
-            href={GOOGLE_FORM_LINK}
+            href={registrationLink}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-tedx-red hover:bg-tedx-dark-red text-foreground font-heading font-bold text-lg px-8 py-3 rounded flex items-center gap-2 transition-colors relative overflow-hidden"
@@ -99,7 +113,7 @@ const HeroSection = () => {
             { icon: Calendar, text: "Coming Soon 2025" },
             { icon: MapPin, text: "KPRCAS Campus" },
             { icon: Users, text: "500+ Attendees" },
-          ].map((item, i) => (
+          ].map((item) => (
             <motion.div
               key={item.text}
               className="flex items-center gap-2"

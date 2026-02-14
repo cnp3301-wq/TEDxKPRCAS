@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Menu, X, Lock } from "lucide-react";
-
-const GOOGLE_FORM_LINK = "#"; // Replace with actual Google Form link
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -14,6 +12,20 @@ const navItems = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [registrationLink, setRegistrationLink] = useState("https://forms.gle/example");
+
+  useEffect(() => {
+    // Get registration link from localStorage (set by admin)
+    const savedContact = localStorage.getItem("tedx_contact");
+    if (savedContact) {
+      try {
+        const contactData = JSON.parse(savedContact);
+        setRegistrationLink(contactData.registrationLink || "https://forms.gle/example");
+      } catch (e) {
+        console.error("Error parsing contact data:", e);
+      }
+    }
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-md border-b border-border">
@@ -43,7 +55,7 @@ const Navbar = () => {
           {/*  Admin*/}
           {/*</Link>*/}
           <a
-            href={GOOGLE_FORM_LINK}
+            href={registrationLink}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-tedx-red text-foreground font-heading font-bold text-sm px-5 py-2 rounded hover:bg-tedx-dark-red transition-colors"
@@ -84,7 +96,7 @@ const Navbar = () => {
             Admin
           </Link>
           <a
-            href={GOOGLE_FORM_LINK}
+            href={registrationLink}
             target="_blank"
             rel="noopener noreferrer"
             className="block mt-2 bg-tedx-red text-foreground font-heading font-bold text-sm px-5 py-2 rounded text-center"

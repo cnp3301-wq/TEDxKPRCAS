@@ -2,36 +2,71 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, CheckCircle, Shield, Trash2, Filter, Users,
-  Calendar, ChevronDown, Search, X, Mail, Palette
+  Calendar, ChevronDown, Search, X, Mail, Palette, Plus, Edit2,
+  MessageSquare, Phone, MapPin, Link as LinkIcon, Upload, Eye,
 } from "lucide-react";
-import CertificateEditor, { CertificateConfig } from "@/components/admin/CertificateEditor";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import CertificateTemplate from "@/components/CertificateTemplate";
+import GoogleFormDataImport from "@/components/admin/GoogleFormDataImport";
+import SpeakerFormWithImage from "@/components/admin/SpeakerFormWithImage";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-// Mock registration data
+// Mock data
 const MOCK_PARTICIPANTS = [
-  { id: 1, name: "Ahmed Hassan", email: "ahmed@example.com", date: "2026-02-01", status: "registered" },
-  { id: 2, name: "Sara Ali", email: "sara@example.com", date: "2026-02-01", status: "registered" },
-  { id: 3, name: "Omar Khalid", email: "omar@example.com", date: "2026-02-03", status: "registered" },
-  { id: 4, name: "Fatima Noor", email: "fatima@example.com", date: "2026-02-05", status: "registered" },
-  { id: 5, name: "Yusuf Khan", email: "yusuf@example.com", date: "2026-02-05", status: "registered" },
-  { id: 6, name: "Layla Ibrahim", email: "layla@example.com", date: "2026-02-07", status: "registered" },
-  { id: 7, name: "Hassan Tariq", email: "hassan@example.com", date: "2026-02-08", status: "registered" },
-  { id: 8, name: "Nadia Saeed", email: "nadia@example.com", date: "2026-02-10", status: "registered" },
-  { id: 9, name: "Bilal Farooq", email: "bilal@example.com", date: "2026-02-11", status: "registered" },
-  { id: 10, name: "Zara Malik", email: "zara@example.com", date: "2026-02-13", status: "registered" },
+  { id: 1, name: "Ahmed Hassan", email: "ahmed@example.com", date: "2026-02-01", status: "registered", certSent: false },
+  { id: 2, name: "Sara Ali", email: "sara@example.com", date: "2026-02-01", status: "registered", certSent: false },
+  { id: 3, name: "Omar Khalid", email: "omar@example.com", date: "2026-02-03", status: "registered", certSent: false },
 ];
 
-type Participant = typeof MOCK_PARTICIPANTS[number] & { certSent?: boolean };
+const MOCK_SPEAKERS = [
+  { id: 1, name: "Speaker 1", role: "Industry Expert", image: "" },
+  { id: 2, name: "Speaker 2", role: "Tech Innovator", image: "" },
+  { id: 3, name: "Speaker 3", role: "Business Leader", image: "" },
+];
+
+const MOCK_ABOUT = {
+  title: "About TEDx KPRCAS",
+  description: "TEDx is an independent event that brings people together to share a TED-like experience.",
+  content: "In the spirit of ideas worth spreading, TED has created a program called TEDx.",
+};
+
+const MOCK_CONTACT = {
+  email: "contact@kprcas.edu.in",
+  phone: "+91-XXXX-XXXX-XX",
+  address: "KPR College of Arts and Science, Coimbatore",
+  formLink: "https://forms.gle/example",
+  registrationLink: "https://forms.gle/example",
+};
+
+type Participant = typeof MOCK_PARTICIPANTS[number];
+type Speaker = typeof MOCK_SPEAKERS[number];
 
 const AdminPage = () => {
+  const [tab, setTab] = useState<"participants" | "speakers" | "certificates" | "about" | "contact">("participants");
+
+  // ...existing code...
+
+  // Certificate management state
+  const [showCertificateDesigner, setShowCertificateDesigner] = useState(false);
+  const [certificateTitle, setCertificateTitle] = useState("Certificate of Participation");
+  const [certificateText, setCertificateText] = useState("In recognition of your enthusiasm, engagement, and commitment to spreading ideas worth sharing.");
+  const [certificateBgColor, setCertificateBgColor] = useState("from-amber-50 to-yellow-50");
+
+  // Participants state
   const [participants, setParticipants] = useState<Participant[]>(MOCK_PARTICIPANTS);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,9 +74,34 @@ const AdminPage = () => {
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [certEditorOpen, setCertEditorOpen] = useState(false);
-  const [certConfig, setCertConfig] = useState<CertificateConfig | undefined>();
+  const [showParticipantForm, setShowParticipantForm] = useState(false);
+  const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
+  const [formData, setFormData] = useState({ name: "", email: "" });
 
+  // Speakers state
+  const [speakers, setSpeakers] = useState<Speaker[]>(MOCK_SPEAKERS);
+  const [showSpeakerForm, setShowSpeakerForm] = useState(false);
+  const [editingSpeaker, setEditingSpeaker] = useState<Speaker | null>(null);
+  const [speakerFormData, setSpeakerFormData] = useState({ name: "", role: "", image: "" });
+
+  // About state
+  const [about, setAbout] = useState(MOCK_ABOUT);
+  const [editingAbout, setEditingAbout] = useState(false);
+  const [aboutFormData, setAboutFormData] = useState(MOCK_ABOUT);
+
+  // Contact state
+  const [contact, setContact] = useState(MOCK_CONTACT);
+  const [editingContact, setEditingContact] = useState(false);
+  const [contactFormData, setContactFormData] = useState(MOCK_CONTACT);
+
+  // Certificate & Import state
+  const [showCertificatePreview, setShowCertificatePreview] = useState(false);
+  const [previewParticipantName, setPreviewParticipantName] = useState("Sample Participant");
+  const [showGoogleFormImport, setShowGoogleFormImport] = useState(false);
+  const [eventName, setEventName] = useState("TEDx KPRCAS 2026");
+  const [eventDate, setEventDate] = useState("February 15, 2026");
+
+  // Participants functions
   const filtered = useMemo(() => {
     return participants.filter((p) => {
       const matchSearch =
@@ -82,6 +142,50 @@ const AdminPage = () => {
     }
   };
 
+  const addParticipant = () => {
+    setEditingParticipant(null);
+    setFormData({ name: "", email: "" });
+    setShowParticipantForm(true);
+  };
+
+  const editParticipant = (p: Participant) => {
+    setEditingParticipant(p);
+    setFormData({ name: p.name, email: p.email });
+    setShowParticipantForm(true);
+  };
+
+  const saveParticipant = () => {
+    if (!formData.name || !formData.email) return;
+
+    if (editingParticipant) {
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === editingParticipant.id
+            ? { ...p, name: formData.name, email: formData.email }
+            : p
+        )
+      );
+    } else {
+      const newId = Math.max(...participants.map((p) => p.id), 0) + 1;
+      setParticipants((prev) => [
+        ...prev,
+        {
+          id: newId,
+          name: formData.name,
+          email: formData.email,
+          date: format(new Date(), "yyyy-MM-dd"),
+          status: "registered",
+          certSent: false,
+        },
+      ]);
+    }
+    setShowParticipantForm(false);
+  };
+
+  const deleteParticipant = (id: number) => {
+    setParticipants((prev) => prev.filter((p) => p.id !== id));
+  };
+
   const handleBulkSend = async () => {
     if (selected.size === 0) return;
     setSending(true);
@@ -101,10 +205,50 @@ const AdminPage = () => {
     setDateTo(undefined);
   };
 
+  // Speakers functions
+  const addSpeaker = () => {
+    setEditingSpeaker(null);
+    setSpeakerFormData({ name: "", role: "", image: "" });
+    setShowSpeakerForm(true);
+  };
+
+  const editSpeaker = (s: Speaker) => {
+    setEditingSpeaker(s);
+    setSpeakerFormData(s);
+    setShowSpeakerForm(true);
+  };
+
+  const saveSpeaker = (data?: { name: string; role: string; image: string }) => {
+    const dataToSave = data || speakerFormData;
+    if (!dataToSave.name || !dataToSave.role) return;
+
+    if (editingSpeaker) {
+      setSpeakers((prev) =>
+        prev.map((s) =>
+          s.id === editingSpeaker.id
+            ? { ...s, ...dataToSave }
+            : s
+        )
+      );
+    } else {
+      const newId = Math.max(...speakers.map((s) => s.id), 0) + 1;
+      setSpeakers((prev) => [...prev, { id: newId, ...dataToSave }]);
+    }
+    setShowSpeakerForm(false);
+  };
+
+  const deleteSpeaker = (id: number) => {
+    setSpeakers((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleGoogleFormImport = (importedData: ImportedParticipant[]) => {
+    setParticipants((prev) => [...prev, ...importedData]);
+  };
+
   const hasActiveFilters = searchQuery || dateFrom || dateTo;
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden relative">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden relative pt-20">
       {/* Animated background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {[...Array(6)].map((_, i) => (
@@ -123,7 +267,7 @@ const AdminPage = () => {
         ))}
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -30 }}
@@ -138,374 +282,852 @@ const AdminPage = () => {
             <h1 className="font-heading text-4xl md:text-5xl font-black">
               <span className="text-primary">TED</span>
               <sup className="text-primary text-2xl">x</sup>{" "}
-              <span className="text-foreground">Admin</span>
+              <span className="text-foreground">Admin CMS</span>
             </h1>
           </div>
-          <p className="text-muted-foreground text-lg">Registration & Certificate Management</p>
-          <div className="flex items-center gap-4 mt-3">
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="h-[2px] w-32 bg-primary origin-left"
-            />
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              whileHover={{ scale: 1.05, boxShadow: "0 0 20px hsl(var(--primary) / 0.3)" }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setCertEditorOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary text-sm font-medium transition-colors"
-            >
-              <Palette className="w-4 h-4" />
-              Edit Certificate
-            </motion.button>
-          </div>
+          <p className="text-muted-foreground text-lg">Complete Content Management System with CRUD Operations</p>
         </motion.div>
 
-        {/* Speakers Section */}
+        {/* Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="mb-10"
+          transition={{ delay: 0.1 }}
+          className="flex gap-2 mb-8 overflow-x-auto pb-2 flex-wrap"
         >
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold">
-              Featured <span className="text-primary">Speakers</span>
-            </h2>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            {[
-              { name: "Speaker 1", role: "Industry Expert", initial: "S1" },
-              { name: "Speaker 2", role: "Tech Innovator", initial: "S2" },
-              { name: "Speaker 3", role: "Business Leader", initial: "S3" },
-            ].map((speaker, i) => (
-              <motion.div
-                key={speaker.name}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 + i * 0.1 }}
-                whileHover={{
-                  y: -8,
-                  boxShadow: "0 20px 40px hsl(var(--primary) / 0.15)",
-                  borderColor: "hsl(var(--primary) / 0.6)",
-                }}
-                className="border border-primary/30 rounded-xl p-6 transition-colors group cursor-pointer bg-card/50 backdrop-blur-sm hover:bg-card/70"
-              >
-                <motion.div
-                  className="w-full aspect-square bg-secondary rounded-lg mb-6 flex items-center justify-center overflow-hidden relative"
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <motion.span
-                    className="font-heading text-6xl text-primary/30 group-hover:text-primary/60 transition-colors"
-                    whileHover={{ scale: 1.2, rotate: 5 }}
-                  >
-                    {speaker.initial}
-                  </motion.span>
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                  />
-                </motion.div>
-                <h3 className="font-heading text-xl font-bold text-foreground uppercase">{speaker.name}</h3>
-                <p className="text-primary font-heading text-xs uppercase tracking-wider mt-2">{speaker.role}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Filters Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="border border-border rounded-2xl p-6 mb-6 bg-card/60 backdrop-blur-sm"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-lg font-bold flex items-center gap-2">
-              <Filter className="w-4 h-4 text-primary" /> Filters
-            </h2>
-            {hasActiveFilters && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={clearFilters}
-                className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
-              >
-                <X className="w-3 h-3" /> Clear all
-              </motion.button>
-            )}
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name or email..."
-                className="w-full bg-secondary border border-border rounded-lg pl-10 pr-4 py-2.5 text-foreground text-sm focus:outline-none focus:border-primary focus:shadow-[0_0_15px_hsl(var(--primary)/0.15)] transition-all"
-              />
-            </div>
-
-            {/* Date From */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full md:w-[180px] justify-start text-left font-normal text-sm",
-                    !dateFrom && "text-muted-foreground"
-                  )}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {dateFrom ? format(dateFrom, "MMM dd, yyyy") : "From date"}
-                  <ChevronDown className="ml-auto h-3 w-3 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarUI
-                  mode="single"
-                  selected={dateFrom}
-                  onSelect={setDateFrom}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-
-            {/* Date To */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full md:w-[180px] justify-start text-left font-normal text-sm",
-                    !dateTo && "text-muted-foreground"
-                  )}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {dateTo ? format(dateTo, "MMM dd, yyyy") : "To date"}
-                  <ChevronDown className="ml-auto h-3 w-3 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarUI
-                  mode="single"
-                  selected={dateTo}
-                  onSelect={setDateTo}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </motion.div>
-
-        {/* Action Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3"
-        >
-          <div className="flex items-center gap-3">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              {filtered.length} participant{filtered.length !== 1 ? "s" : ""}
-              {selected.size > 0 && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-primary font-medium"
-                >
-                  {" "}· {selected.size} selected
-                </motion.span>
-              )}
-            </span>
-          </div>
-
-          <motion.button
-            onClick={handleBulkSend}
-            disabled={sending || selected.size === 0}
-            whileHover={{ scale: 1.03, boxShadow: "0 0 25px hsl(var(--primary) / 0.4)" }}
-            whileTap={{ scale: 0.97 }}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-heading font-bold px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
-          >
-            <AnimatePresence mode="wait">
-              {sending ? (
-                <motion.div
-                  key="spin"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1, rotate: 360 }}
-                  transition={{ rotate: { duration: 1, repeat: Infinity, ease: "linear" } }}
-                  className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
-                />
-              ) : success ? (
-                <motion.div key="ok" initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                  <CheckCircle className="w-4 h-4" />
-                </motion.div>
-              ) : (
-                <motion.div key="send" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <Send className="w-4 h-4" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {sending
-              ? "Sending..."
-              : success
-              ? "Sent!"
-              : `Send Certificate${selected.size > 1 ? "s" : ""} (${selected.size})`}
-          </motion.button>
-        </motion.div>
-
-        {/* Participants Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="border border-border rounded-2xl bg-card/60 backdrop-blur-sm overflow-hidden"
-        >
-          {/* Table Header */}
-          <div className="grid grid-cols-[40px_1fr_1fr_120px_100px] md:grid-cols-[48px_1.5fr_1.5fr_140px_120px] items-center gap-2 px-4 md:px-6 py-3 border-b border-border bg-secondary/50 text-xs text-muted-foreground font-medium uppercase tracking-wider">
-            <div className="flex items-center justify-center">
-              <motion.button
-                whileTap={{ scale: 0.85 }}
-                onClick={toggleAll}
+          {[
+            { id: "participants", label: "Participants", icon: Users },
+            { id: "speakers", label: "Speakers", icon: MessageSquare },
+            { id: "certificates", label: "Certificates", icon: Palette },
+            { id: "about", label: "About", icon: MessageSquare },
+            { id: "contact", label: "Contact", icon: Phone },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setTab(item.id as typeof tab)}
                 className={cn(
-                  "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
-                  allSelected
-                    ? "bg-primary border-primary"
-                    : "border-border hover:border-primary/50"
+                  "px-6 py-2.5 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2",
+                  tab === item.id
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "bg-card border border-border hover:border-primary/50 hover:bg-card/80"
                 )}
               >
-                {allSelected && (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                    <CheckCircle className="w-3 h-3 text-primary-foreground" />
-                  </motion.div>
-                )}
-              </motion.button>
-            </div>
-            <span>Name</span>
-            <span>Email</span>
-            <span>Date</span>
-            <span className="text-center">Status</span>
-          </div>
+                <Icon className="w-4 h-4" />
+                {item.label}
+              </button>
+            );
+          })}
+        </motion.div>
 
-          {/* Table Body */}
-          <div className="divide-y divide-border">
-            <AnimatePresence>
-              {filtered.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="px-6 py-12 text-center text-muted-foreground"
-                >
-                  <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">No participants found</p>
-                </motion.div>
-              ) : (
-                filtered.map((p, i) => (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: i * 0.03 }}
-                    onClick={() => toggleSelect(p.id)}
-                    className={cn(
-                      "grid grid-cols-[40px_1fr_1fr_120px_100px] md:grid-cols-[48px_1.5fr_1.5fr_140px_120px] items-center gap-2 px-4 md:px-6 py-3.5 cursor-pointer transition-colors group",
-                      selected.has(p.id)
-                        ? "bg-primary/5 hover:bg-primary/10"
-                        : "hover:bg-secondary/50"
-                    )}
-                  >
-                    {/* Checkbox */}
-                    <div className="flex items-center justify-center">
-                      <div
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          {tab === "participants" && (
+            <motion.div key="participants" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              {/* Filters */}
+              <motion.div className="border border-border rounded-2xl p-6 mb-6 bg-card/60 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-heading text-lg font-bold flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-primary" /> Filters
+                  </h2>
+                  {hasActiveFilters && (
+                    <motion.button
+                      onClick={clearFilters}
+                      className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                    >
+                      <X className="w-3 h-3" /> Clear all
+                    </motion.button>
+                  )}
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search by name or email..."
+                      className="w-full bg-secondary border border-border rounded-lg pl-10 pr-4 py-2.5 text-foreground text-sm focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
                         className={cn(
-                          "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
-                          selected.has(p.id)
-                            ? "bg-primary border-primary"
-                            : "border-border group-hover:border-primary/50"
+                          "w-full md:w-[180px] justify-start text-left font-normal text-sm",
+                          !dateFrom && "text-muted-foreground"
                         )}
                       >
-                        {selected.has(p.id) && (
-                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                            <CheckCircle className="w-3 h-3 text-primary-foreground" />
-                          </motion.div>
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {dateFrom ? format(dateFrom, "MMM dd") : "From date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarUI mode="single" selected={dateFrom} onSelect={setDateFrom} className="p-3" />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full md:w-[180px] justify-start text-left font-normal text-sm",
+                          !dateTo && "text-muted-foreground"
                         )}
-                      </div>
-                    </div>
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {dateTo ? format(dateTo, "MMM dd") : "To date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarUI mode="single" selected={dateTo} onSelect={setDateTo} className="p-3" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </motion.div>
 
-                    {/* Name */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-xs shrink-0">
-                        {p.name.charAt(0)}
-                      </div>
-                      <span className="text-sm font-medium text-foreground truncate">{p.name}</span>
-                    </div>
+              {/* Action Bar */}
+              <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
+                <div className="text-sm text-muted-foreground">
+                  {filtered.length} participant{filtered.length !== 1 ? "s" : ""} found
+                  {selected.size > 0 && <span className="text-primary font-medium ml-2">· {selected.size} selected</span>}
+                </div>
 
-                    {/* Email */}
-                    <div className="flex items-center gap-1.5 min-w-0 text-muted-foreground">
-                      <Mail className="w-3 h-3 shrink-0 hidden md:block" />
-                      <span className="text-sm truncate">{p.email}</span>
-                    </div>
+                <div className="flex gap-3 flex-wrap">
+                  <motion.button
+                    onClick={() => setShowGoogleFormImport(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Import Google Form
+                  </motion.button>
 
-                    {/* Date */}
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(p.date), "MMM dd, yyyy")}
-                    </span>
+                  <motion.button
+                    onClick={() => setShowCertificatePreview(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Preview Certificate
+                  </motion.button>
 
-                    {/* Status */}
-                    <div className="flex justify-center">
-                      {p.certSent ? (
-                        <motion.span
-                          initial={{ scale: 0.8 }}
-                          animate={{ scale: 1 }}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full"
+                  <motion.button
+                    onClick={addParticipant}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Participant
+                  </motion.button>
+
+                  <motion.button
+                    onClick={handleBulkSend}
+                    disabled={sending || selected.size === 0}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="w-4 h-4" />
+                    Send Certs ({selected.size})
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* Table */}
+              <motion.div className="border border-border rounded-2xl bg-card/60 overflow-hidden backdrop-blur-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b border-border bg-secondary/50">
+                      <tr>
+                        <th className="px-4 py-3 text-left">
+                          <input
+                            type="checkbox"
+                            checked={allSelected}
+                            onChange={toggleAll}
+                            className="rounded"
+                          />
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium">Name</th>
+                        <th className="px-4 py-3 text-left font-medium">Email</th>
+                        <th className="px-4 py-3 text-left font-medium">Date</th>
+                        <th className="px-4 py-3 text-left font-medium">Status</th>
+                        <th className="px-4 py-3 text-center font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {filtered.map((p) => (
+                        <tr
+                          key={p.id}
+                          className={cn(
+                            "hover:bg-secondary/30 transition-colors",
+                            selected.has(p.id) && "bg-primary/10"
+                          )}
                         >
-                          <CheckCircle className="w-3 h-3" /> Sent
-                        </motion.span>
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={selected.has(p.id)}
+                              onChange={() => toggleSelect(p.id)}
+                              className="rounded"
+                            />
+                          </td>
+                          <td className="px-4 py-3">{p.name}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{p.email}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{format(new Date(p.date), "MMM dd")}</td>
+                          <td className="px-4 py-3">
+                            <span className={cn(
+                              "px-2.5 py-1 rounded-full text-xs font-medium",
+                              p.certSent ? "bg-green-500/20 text-green-700" : "bg-yellow-500/20 text-yellow-700"
+                            )}>
+                              {p.certSent ? "Sent" : "Pending"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => editParticipant(p)}
+                              className="p-2 hover:bg-blue-500/20 rounded transition-colors"
+                            >
+                              <Edit2 className="w-4 h-4 text-blue-500" />
+                            </button>
+                            <button
+                              onClick={() => deleteParticipant(p.id)}
+                              className="p-2 hover:bg-red-500/20 rounded transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+
+              {/* Participant Form Dialog */}
+              <Dialog open={showParticipantForm} onOpenChange={setShowParticipantForm}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingParticipant ? "Edit Participant" : "Add Participant"}</DialogTitle>
+                    <DialogDescription>Fill in the participant details below.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Name</label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground"
+                        placeholder="Enter name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Email</label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground"
+                        placeholder="Enter email"
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        onClick={saveParticipant}
+                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 rounded-lg transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setShowParticipantForm(false)}
+                        className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </motion.div>
+          )}
+
+          {tab === "speakers" && (
+            <motion.div key="speakers" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <div className="flex justify-end mb-6">
+                <motion.button
+                  onClick={addSpeaker}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Speaker
+                </motion.button>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {speakers.map((speaker) => (
+                  <motion.div
+                    key={speaker.id}
+                    whileHover={{ y: -4 }}
+                    className="border border-border rounded-xl p-6 bg-card/60 backdrop-blur-sm overflow-hidden"
+                  >
+                    <div className="w-full aspect-square bg-secondary rounded-lg mb-4 flex items-center justify-center overflow-hidden bg-cover bg-center">
+                      {speaker.image ? (
+                        <img
+                          src={speaker.image}
+                          alt={speaker.name}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <span className="inline-flex items-center text-xs font-medium text-muted-foreground bg-secondary px-2.5 py-1 rounded-full">
-                          Pending
-                        </span>
+                        <span className="text-4xl font-bold text-primary/30">{speaker.name.charAt(0)}</span>
                       )}
                     </div>
+                    <h3 className="font-heading text-lg font-bold mb-1">{speaker.name}</h3>
+                    <p className="text-sm text-primary mb-4">{speaker.role}</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => editSpeaker(speaker)}
+                        className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 font-medium py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteSpeaker(speaker.id)}
+                        className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-600 font-medium py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
                   </motion.div>
-                ))
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
+                ))}
+              </div>
+
+              {/* Speaker Form Dialog */}
+              <Dialog open={showSpeakerForm} onOpenChange={setShowSpeakerForm}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingSpeaker ? "Edit Speaker" : "Add Speaker"}</DialogTitle>
+                  </DialogHeader>
+                  <SpeakerFormWithImage
+                    initialData={editingSpeaker || undefined}
+                    onSave={saveSpeaker}
+                    onCancel={() => setShowSpeakerForm(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+            </motion.div>
+          )}
+
+          {tab === "certificates" && (
+            <motion.div key="certificates" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <motion.div className="border border-border rounded-2xl p-8 bg-card/60 backdrop-blur-sm">
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="font-heading text-2xl font-bold flex items-center gap-2">
+                    <Palette className="w-6 h-6 text-primary" />
+                    Certificate Management
+                  </h2>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Certificate Design Options */}
+                  <div className="space-y-6">
+                    <div className="border border-border rounded-xl p-6 bg-secondary/30">
+                      <h3 className="font-heading text-lg font-bold mb-4">Design Certificate</h3>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Certificate Title</label>
+                          <input
+                            type="text"
+                            value={certificateTitle}
+                            onChange={(e) => setCertificateTitle(e.target.value)}
+                            className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5 text-sm"
+                            placeholder="E.g., Certificate of Participation"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Certificate Text</label>
+                          <textarea
+                            value={certificateText}
+                            onChange={(e) => setCertificateText(e.target.value)}
+                            className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5 text-sm h-24 resize-none"
+                            placeholder="Enter the certificate body text..."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Background Color</label>
+                          <select
+                            value={certificateBgColor}
+                            onChange={(e) => setCertificateBgColor(e.target.value)}
+                            className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5 text-sm"
+                          >
+                            <option value="from-amber-50 to-yellow-50">Gold/Yellow</option>
+                            <option value="from-blue-50 to-cyan-50">Blue/Cyan</option>
+                            <option value="from-green-50 to-emerald-50">Green/Emerald</option>
+                            <option value="from-red-50 to-orange-50">Red/Orange</option>
+                            <option value="from-purple-50 to-pink-50">Purple/Pink</option>
+                            <option value="from-gray-50 to-slate-50">Gray/Slate</option>
+                          </select>
+                        </div>
+
+                        <button
+                          onClick={() => setShowCertificateDesigner(!showCertificateDesigner)}
+                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                          {showCertificateDesigner ? "Hide Preview" : "Preview Design"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Quick Links */}
+                    <div className="border border-border rounded-xl p-6 bg-secondary/30">
+                      <h3 className="font-heading text-lg font-bold mb-4">Quick Actions</h3>
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => setShowCertificatePreview(true)}
+                          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Preview with Participant Name
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            const csvContent = "Certificate,Title,Text,Color\n" + certificateTitle + "," + certificateTitle + "," + certificateText + "," + certificateBgColor;
+                            const blob = new Blob([csvContent], { type: 'text/csv' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'certificate_design.csv';
+                            a.click();
+                          }}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm"
+                        >
+                          <Upload className="w-4 h-4" />
+                          Export Design
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setCertificateTitle("Certificate of Participation");
+                            setCertificateText("In recognition of your enthusiasm, engagement, and commitment to spreading ideas worth sharing.");
+                            setCertificateBgColor("from-amber-50 to-yellow-50");
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          Reset to Default
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preview Section */}
+                  <div className="space-y-4">
+                    {showCertificateDesigner && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="border border-border rounded-xl p-8 bg-gradient-to-br bg-gray-100 dark:bg-gray-900"
+                      >
+                        <div className={`bg-gradient-to-br ${certificateBgColor} p-12 rounded-lg shadow-xl border-4 border-double border-amber-900/30`}>
+                          <div className="text-center">
+                            <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center shadow-lg mx-auto mb-6">
+                              <span className="text-2xl font-bold text-white">✓</span>
+                            </div>
+
+                            <h1 className="text-3xl font-bold text-amber-900 mb-2 font-serif">
+                              {certificateTitle}
+                            </h1>
+                            <div className="w-20 h-1 bg-gradient-to-r from-primary via-primary to-transparent mx-auto mb-6" />
+
+                            <p className="text-amber-900/80 text-sm mb-4">This certificate is proudly presented to</p>
+
+                            <p className="text-3xl font-bold text-primary mb-4 font-serif underline">
+                              Sample Participant
+                            </p>
+
+                            <p className="text-amber-900/80 text-sm leading-relaxed max-w-xs mx-auto">
+                              {certificateText}
+                            </p>
+
+                            <div className="mt-8 pt-6 border-t border-amber-900/20">
+                              <p className="font-semibold text-amber-900 text-sm">Dr. Event Organizer</p>
+                              <p className="text-xs text-amber-900/60">Event Organizer</p>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {!showCertificateDesigner && (
+                      <div className="border-2 border-dashed border-border rounded-xl p-12 text-center bg-secondary/30">
+                        <Eye className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                        <p className="text-muted-foreground mb-2">Preview not active</p>
+                        <p className="text-sm text-muted-foreground">Click "Preview Design" to see your certificate</p>
+                      </div>
+                    )}
+
+                    {/* Info Box */}
+                    <div className="border border-border rounded-xl p-6 bg-blue-500/10">
+                      <h4 className="font-medium text-blue-600 mb-2 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" />
+                        Certificate Info
+                      </h4>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>✓ Customizable title and text</li>
+                        <li>✓ 6 background color options</li>
+                        <li>✓ Professional design template</li>
+                        <li>✓ Auto-fills participant names</li>
+                        <li>✓ Export design settings</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {tab === "about" && (
+            <motion.div key="about" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <motion.div className="border border-border rounded-2xl p-8 bg-card/60 backdrop-blur-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="font-heading text-2xl font-bold">About Section</h2>
+                  {!editingAbout && (
+                    <button
+                      onClick={() => {
+                        setEditingAbout(true);
+                        setAboutFormData(about);
+                      }}
+                      className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 font-medium px-4 py-2 rounded-lg flex items-center gap-2"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Edit
+                    </button>
+                  )}
+                </div>
+
+                {editingAbout ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Title</label>
+                      <input
+                        type="text"
+                        value={aboutFormData.title}
+                        onChange={(e) => setAboutFormData({ ...aboutFormData, title: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Description</label>
+                      <textarea
+                        value={aboutFormData.description}
+                        onChange={(e) => setAboutFormData({ ...aboutFormData, description: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3 h-24"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Content</label>
+                      <textarea
+                        value={aboutFormData.content}
+                        onChange={(e) => setAboutFormData({ ...aboutFormData, content: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3 h-32"
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        onClick={() => {
+                          setAbout(aboutFormData);
+                          setEditingAbout(false);
+                        }}
+                        className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-600 font-medium py-2 rounded-lg"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingAbout(false)}
+                        className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Title</h3>
+                      <p className="text-lg font-semibold">{about.title}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
+                      <p className="text-foreground">{about.description}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Content</h3>
+                      <p className="text-foreground whitespace-pre-wrap">{about.content}</p>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+
+          {tab === "contact" && (
+            <motion.div key="contact" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <motion.div className="border border-border rounded-2xl p-8 bg-card/60 backdrop-blur-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="font-heading text-2xl font-bold">Contact Information</h2>
+                  {!editingContact && (
+                    <button
+                      onClick={() => {
+                        setEditingContact(true);
+                        setContactFormData(contact);
+                      }}
+                      className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 font-medium px-4 py-2 rounded-lg flex items-center gap-2"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Edit
+                    </button>
+                  )}
+                </div>
+
+                {editingContact ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={contactFormData.email}
+                        onChange={(e) => setContactFormData({ ...contactFormData, email: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={contactFormData.phone}
+                        onChange={(e) => setContactFormData({ ...contactFormData, phone: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Address
+                      </label>
+                      <textarea
+                        value={contactFormData.address}
+                        onChange={(e) => setContactFormData({ ...contactFormData, address: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3 h-20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                        <LinkIcon className="w-4 h-4" />
+                        Form Link
+                      </label>
+                      <input
+                        type="url"
+                        value={contactFormData.formLink}
+                        onChange={(e) => setContactFormData({ ...contactFormData, formLink: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                        <LinkIcon className="w-4 h-4" />
+                        Registration Link (for users to register)
+                      </label>
+                      <input
+                        type="url"
+                        value={contactFormData.registrationLink}
+                        onChange={(e) => setContactFormData({ ...contactFormData, registrationLink: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                        placeholder="https://forms.gle/your-registration-form"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        This link will be used for the "Register Now" button on the website
+                      </p>
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        onClick={() => {
+                          setContact(contactFormData);
+                          // Save to localStorage so website can access the registration link
+                          localStorage.setItem("tedx_contact", JSON.stringify(contactFormData));
+                          setEditingContact(false);
+                        }}
+                        className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-600 font-medium py-2 rounded-lg"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingContact(false)}
+                        className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg">
+                      <Mail className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Email</p>
+                        <p className="font-medium">{contact.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg">
+                      <Phone className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Phone</p>
+                        <p className="font-medium">{contact.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-4 bg-secondary/30 rounded-lg">
+                      <MapPin className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Address</p>
+                        <p className="font-medium">{contact.address}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg">
+                      <LinkIcon className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Form Link</p>
+                        <a href={contact.formLink} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 hover:underline">
+                          View Form
+                        </a>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                      <LinkIcon className="w-5 h-5 text-green-600" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Registration Link (Used on website)</p>
+                        <a href={contact.registrationLink} target="_blank" rel="noopener noreferrer" className="font-medium text-green-600 hover:underline break-all text-sm">
+                          {contact.registrationLink}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Certificate Preview Dialog */}
+        <Dialog open={showCertificatePreview} onOpenChange={setShowCertificatePreview}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Certificate Preview</DialogTitle>
+              <DialogDescription>Preview how certificates will look</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Preview Name</label>
+                  <input
+                    type="text"
+                    value={previewParticipantName}
+                    onChange={(e) => setPreviewParticipantName(e.target.value)}
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                    placeholder="Enter name for preview"
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Event Name</label>
+                    <input
+                      type="text"
+                      value={eventName}
+                      onChange={(e) => setEventName(e.target.value)}
+                      className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Event Date</label>
+                    <input
+                      type="text"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-100 dark:bg-gray-900 p-8 rounded-lg overflow-auto max-h-96">
+                <CertificateTemplate
+                  participantName={previewParticipantName}
+                  eventName={eventName}
+                  eventDate={eventDate}
+                  certificateId={`CERT-2026-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`}
+                />
+              </div>
+              <button
+                onClick={() => setShowCertificatePreview(false)}
+                className="w-full bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2.5 rounded-lg"
+              >
+                Close Preview
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Google Form Import Dialog */}
+        <Dialog open={showGoogleFormImport} onOpenChange={setShowGoogleFormImport}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Import Google Form Data</DialogTitle>
+              <DialogDescription>Import participant data from Google Form responses</DialogDescription>
+            </DialogHeader>
+            <GoogleFormDataImport
+              onImport={handleGoogleFormImport}
+              onClose={() => setShowGoogleFormImport(false)}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Success toast */}
         <AnimatePresence>
           {success && (
             <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.8 }}
-              className="fixed bottom-8 right-8 bg-card border border-primary/30 rounded-xl px-6 py-4 flex items-center gap-3 shadow-[0_0_30px_hsl(var(--primary)/0.2)] z-50"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-8 right-8 bg-card border border-green-500/30 rounded-xl px-6 py-4 flex items-center gap-3 shadow-lg z-50"
             >
-              <CheckCircle className="w-5 h-5 text-primary" />
+              <CheckCircle className="w-5 h-5 text-green-500" />
               <span className="text-foreground font-medium">Certificates sent successfully!</span>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-
-      {/* Certificate Editor Modal */}
-      <CertificateEditor
-        open={certEditorOpen}
-        onClose={() => setCertEditorOpen(false)}
-        onSave={(cfg) => setCertConfig(cfg)}
-        config={certConfig}
-      />
     </div>
   );
 };
 
 export default AdminPage;
+
