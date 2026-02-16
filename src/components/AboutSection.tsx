@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import AnimatedBackground from "./AnimatedBackground";
+import { useAboutInfo } from "@/hooks/use-database";
 
 const stats = [
   { number: "3+", label: "Events" },
@@ -9,6 +10,11 @@ const stats = [
 ];
 
 const AboutSection = () => {
+  const { data: aboutData, isLoading } = useAboutInfo();
+
+  // Use database content if available, otherwise show default
+  const content = aboutData?.content || "TEDx KPRCAS is a locally organised independently run event. Rooted in the spirit of TED's mission, it brings together thought leaders, innovators, and changemakers to share ideas worth spreading. At KPR College of Arts Science and Research, we celebrate the power of storytelling, innovation, and community building through extraordinary talks and experiences.";
+
   return (
     <section id="about" className="py-24 relative overflow-hidden">
       <AnimatedBackground variant="default" particleCount={6} />
@@ -28,12 +34,13 @@ const AboutSection = () => {
             >
               About
             </motion.h2>
-            <p className="text-muted-foreground leading-relaxed text-lg">
-              TEDx KPRCAS is a locally organised independently run event. Rooted in the spirit of TED's mission,
-              it brings together thought leaders, innovators, and changemakers to share ideas worth spreading.
-              At KPR College of Arts Science and Research, we celebrate the power of storytelling, innovation,
-              and community building through extraordinary talks and experiences.
-            </p>
+            {isLoading ? (
+              <p className="text-muted-foreground leading-relaxed text-lg animate-pulse">Loading...</p>
+            ) : (
+              <p className="text-muted-foreground leading-relaxed text-lg">
+                {content}
+              </p>
+            )}
           </motion.div>
 
           <motion.div
