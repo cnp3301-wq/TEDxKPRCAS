@@ -248,3 +248,61 @@ export function useDeleteEvent() {
     },
   });
 }
+
+// ==================== GALLERY HOOKS ====================
+
+export function useGalleryImages() {
+  return useQuery({
+    queryKey: ["gallery"],
+    queryFn: async () => {
+      // Mock data - replace with actual API call
+      return [
+        {
+          id: "1",
+          url: "https://via.placeholder.com/400x400?text=Event+1",
+          title: "Event Photo 1",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "2",
+          url: "https://via.placeholder.com/400x400?text=Event+2",
+          title: "Event Photo 2",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "3",
+          url: "https://via.placeholder.com/400x400?text=Event+3",
+          title: "Event Photo 3",
+          createdAt: new Date().toISOString(),
+        },
+      ];
+    },
+  });
+}
+
+export function useUploadGalleryImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (file: File) => {
+      // Upload to Supabase storage
+      // Return the image data
+      return { id: "new-id", url: "image-url", title: file.name };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["gallery"] });
+    },
+  });
+}
+
+export function useDeleteGalleryImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => {
+      // Delete from Supabase storage
+      return Promise.resolve();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["gallery"] });
+    },
+  });
+}

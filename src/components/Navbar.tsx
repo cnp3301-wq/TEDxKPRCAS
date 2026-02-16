@@ -7,6 +7,7 @@ const navItems = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
   { label: "Speakers", href: "#speakers" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -39,13 +40,23 @@ const Navbar = () => {
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6">
           {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              {item.label}
-            </a>
+            item.href.startsWith('/') ? (
+              <Link
+                key={item.label}
+                to={item.href}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+              >
+                {item.label}
+              </a>
+            )
           ))}
           {/*<Link*/}
           {/*  to="/admin"*/}
@@ -78,14 +89,25 @@ const Navbar = () => {
           className="md:hidden bg-background border-b border-border px-4 pb-4"
         >
           {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {item.label}
-            </a>
+            item.href.startsWith('/') ? (
+              <Link
+                key={item.label}
+                to={item.href}
+                onClick={() => setOpen(false)}
+                className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {item.label}
+              </a>
+            )
           ))}
           <Link
             to="/admin"

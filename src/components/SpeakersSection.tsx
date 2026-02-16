@@ -1,9 +1,15 @@
 import { motion } from "framer-motion";
 import AnimatedBackground from "./AnimatedBackground";
 import { useSpeakers } from "@/hooks/use-database";
+import { ThreeDImageRing } from "./ui/draggable-3d-image-ring";
 
 const SpeakersSection = () => {
   const { data: speakers = [], isLoading } = useSpeakers();
+
+  // Get speaker images for 3D ring
+  const speakerImages = speakers
+    .filter((s) => s.image)
+    .map((s) => s.image as string);
 
   return (
     <section id="speakers" className="py-24 bg-secondary/30 relative overflow-hidden">
@@ -37,7 +43,7 @@ const SpeakersSection = () => {
           >
             <p className="text-muted-foreground text-xl animate-pulse">Loading speakers...</p>
           </motion.div>
-        ) : speakers.length === 0 ? (
+        ) : speakerImages.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -49,47 +55,67 @@ const SpeakersSection = () => {
             </p>
           </motion.div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {speakers.map((speaker, i) => (
-              <motion.div
-                key={speaker.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-                whileHover={{
-                  y: -8,
-                  boxShadow: "0 20px 40px hsl(0 84% 50% / 0.15)",
-                  borderColor: "hsl(0 84% 50% / 0.6)",
-                }}
-                className="border border-tedx-red/30 rounded-lg p-6 transition-colors group cursor-pointer bg-card/50 backdrop-blur-sm"
-              >
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* 3D Ring Section */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="flex items-center justify-center min-h-[500px]"
+            >
+              <div className="w-full h-full flex items-center justify-center">
+                <ThreeDImageRing
+                  images={speakerImages}
+                  width={300}
+                  perspective={2000}
+                  imageDistance={500}
+                  initialRotation={180}
+                  animationDuration={1.5}
+                  staggerDelay={0.1}
+                  hoverOpacity={0.4}
+                  backgroundColor="transparent"
+                  draggable={true}
+                  mobileBreakpoint={768}
+                  mobileScaleFactor={0.7}
+                  containerClassName="w-full max-w-md mx-auto"
+                />
+              </div>
+            </motion.div>
+
+            {/* Speakers List Section */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-4"
+            >
+              {speakers.map((speaker, index) => (
                 <motion.div
-                  className="w-full aspect-square bg-muted rounded-lg mb-6 flex items-center justify-center overflow-hidden relative bg-cover bg-center"
-                  whileHover={{ scale: 1.02 }}
+                  key={speaker.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="border border-tedx-red/30 rounded-lg p-4 hover:border-tedx-red/60 transition-colors bg-card/50 backdrop-blur-sm group"
                 >
-                  {speaker.image ? (
-                    <img
-                      src={speaker.image}
-                      alt={speaker.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <motion.span
-                      className="font-heading text-6xl text-tedx-red/30 group-hover:text-tedx-red/60 transition-colors"
-                      whileHover={{ scale: 1.2, rotate: 5 }}
-                    >
-                      {speaker.name.charAt(0)}
-                    </motion.span>
-                  )}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-t from-tedx-red/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                  />
+                  <div className="flex items-center gap-4">
+                    {speaker.image && (
+                      <img
+                        src={speaker.image}
+                        alt={speaker.name}
+                        className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-heading font-bold text-lg text-foreground group-hover:text-tedx-red transition-colors">
+                        {speaker.name}
+                      </h3>
+                      <p className="text-sm text-tedx-red">{speaker.role}</p>
+                    </div>
+                  </div>
                 </motion.div>
-                <h3 className="font-heading text-2xl font-bold text-foreground uppercase">{speaker.name}</h3>
-                <p className="text-tedx-red font-heading text-sm uppercase tracking-wider mt-1">{speaker.role}</p>
-              </motion.div>
-            ))}
+              ))}
+            </motion.div>
           </div>
         )}
       </div>
