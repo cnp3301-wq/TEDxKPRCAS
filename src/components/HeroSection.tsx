@@ -42,13 +42,13 @@ const HeroSection = () => {
           className="mb-4"
         >
           <motion.span
-            className="font-heading text-7xl md:text-9xl font-black text-tedx-red inline-block"
+            className="font-heading text-6xl sm:text-7xl md:text-9xl font-black text-tedx-red inline-block"
             animate={{ textShadow: ["0 0 20px hsl(0 84% 50% / 0.3)", "0 0 60px hsl(0 84% 50% / 0.6)", "0 0 20px hsl(0 84% 50% / 0.3)"] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
             TED
           </motion.span>
-          <span className="font-heading text-5xl md:text-7xl font-black text-foreground relative -left-1">
+          <span className="font-heading text-4xl sm:text-5xl md:text-7xl font-black text-foreground relative -left-1">
             <sup className="text-tedx-red">x</sup>
           </span>
         </motion.div>
@@ -57,7 +57,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="font-heading text-4xl md:text-6xl font-bold text-foreground tracking-wider mb-4"
+          className="font-heading text-3xl sm:text-4xl md:text-6xl font-bold text-foreground tracking-wider mb-4"
         >
           KPRCAS
         </motion.h1>

@@ -14,8 +14,15 @@ interface AnimatedBackgroundProps {
   particleCount?: number;
 }
 
+const isMobile =
+  typeof window !== "undefined" &&
+  (window.innerWidth < 768 || "ontouchstart" in window);
+
 const AnimatedBackground = ({ variant = "default", particleCount = 8 }: AnimatedBackgroundProps) => {
-  const particles: FloatingParticle[] = Array.from({ length: particleCount }, (_, i) => ({
+  // Mobile: halve the particle count, min 2
+  const actualCount = isMobile ? Math.max(2, Math.floor(particleCount / 2)) : particleCount;
+
+  const particles: FloatingParticle[] = Array.from({ length: actualCount }, (_, i) => ({
     size: 4 + Math.random() * 6,
     x: `${Math.random() * 100}%`,
     y: `${Math.random() * 100}%`,
@@ -26,8 +33,8 @@ const AnimatedBackground = ({ variant = "default", particleCount = 8 }: Animated
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {/* Floating orbs */}
-      {variant !== "grid" &&
+      {/* Floating orbs — skip on mobile */}
+      {!isMobile && variant !== "grid" &&
         [...Array(3)].map((_, i) => (
           <motion.div
             key={`orb-${i}`}
@@ -82,8 +89,8 @@ const AnimatedBackground = ({ variant = "default", particleCount = 8 }: Animated
         />
       ))}
 
-      {/* Hero-specific shooting lines */}
-      {variant === "hero" && (
+      {/* Hero-specific shooting lines — skip on mobile */}
+      {!isMobile && variant === "hero" && (
         <>
           <motion.div
             className="absolute left-0 top-1/3 w-full h-[1px] bg-gradient-to-r from-transparent via-tedx-red/20 to-transparent"

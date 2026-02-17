@@ -58,8 +58,8 @@ const OrbitingRingsAnimation = () => (
       />
     </motion.div>
 
-    {/* Floating particles */}
-    {[...Array(6)].map((_, i) => (
+    {/* Floating particles — fewer on mobile */}
+    {[...Array(typeof window !== "undefined" && (window.innerWidth < 768 || "ontouchstart" in window) ? 3 : 6)].map((_, i) => (
       <motion.div
         key={i}
         className="absolute w-1.5 h-1.5 rounded-full bg-tedx-red/40"
@@ -86,6 +86,10 @@ const OrbitingRingsAnimation = () => (
 const AboutSection = () => {
   const { data: aboutData, isLoading, isError, error } = useAboutInfo();
 
+  const mobile =
+    typeof window !== "undefined" &&
+    (window.innerWidth < 768 || "ontouchstart" in window);
+
   const content = aboutData?.content || "TEDx KPRCAS is a locally organised independently run event. Rooted in the spirit of TED's mission, it brings together thought leaders, innovators, and changemakers to share ideas worth spreading. At KPR College of Arts Science and Research, we celebrate the power of storytelling, innovation, and community building through extraordinary talks and experiences.";
 
   return (
@@ -102,7 +106,7 @@ const AboutSection = () => {
             transition={{ duration: 0.6 }}
           >
             <motion.h2
-              className="font-heading text-5xl md:text-7xl font-black text-foreground uppercase mb-8"
+              className="font-heading text-4xl sm:text-5xl md:text-7xl font-black text-foreground uppercase mb-8"
               whileInView={{ opacity: [0, 1], y: [30, 0] }}
               viewport={{ once: true }}
             >
@@ -148,15 +152,15 @@ const AboutSection = () => {
           <div className="h-[3px] bg-gray-500 mb-[6px]" />
           <div className="h-[3px] bg-gray-500" />
           <div className="absolute top-0 left-0 right-0 h-full flex">
-            {Array(160).fill(null).map((_, i) => (
+            {Array(mobile ? 60 : 160).fill(null).map((_, i) => (
               <div key={i} className="w-[3px] h-full bg-gray-600 flex-shrink-0" style={{ marginLeft: '20px' }} />
             ))}
           </div>
         </div>
 
         {/* Train carriages */}
-        <div className="marquee whitespace-nowrap flex items-end relative z-10">
-          {Array(16).fill(null).map((_, i) => (
+        <div className="marquee whitespace-nowrap flex items-end relative z-10" style={{ willChange: 'transform' }}>
+          {Array(mobile ? 8 : 16).fill(null).map((_, i) => (
             <div key={i} className="inline-flex flex-shrink-0 items-end mx-1">
               <div className="relative">
                 <div className="relative rounded-t-xl border-2 px-6 md:px-10 py-4 md:py-6 bg-gradient-to-b from-gray-800 to-gray-950 border-gray-600">

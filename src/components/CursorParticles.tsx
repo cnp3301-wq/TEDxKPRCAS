@@ -18,6 +18,11 @@ const CursorParticles = () => {
   const animationId = useRef<number>(0);
   const lastSpawn = useRef(0);
 
+  // Disable on touch / mobile devices — no cursor to show particles for
+  const isTouchDevice =
+    typeof window !== "undefined" &&
+    (window.innerWidth < 768 || "ontouchstart" in window);
+
   const spawnParticles = useCallback((x: number, y: number) => {
     const count = 2 + Math.floor(Math.random() * 2);
     for (let i = 0; i < count; i++) {
@@ -31,12 +36,14 @@ const CursorParticles = () => {
         life: 1,
         maxLife: 40 + Math.random() * 30,
         size: 2 + Math.random() * 4,
-        hue: Math.random() > 0.4 ? 0 : 30, // red or orange-red
+        hue: Math.random() > 0.4 ? 0 : 30,
       });
     }
   }, []);
 
   useEffect(() => {
+    if (isTouchDevice) return; // Skip everything on mobile
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -98,7 +105,10 @@ const CursorParticles = () => {
       window.removeEventListener("mousemove", onMouseMove);
       cancelAnimationFrame(animationId.current);
     };
-  }, [spawnParticles]);
+  }, [spawnParticles, isTouchDevice]);
+
+  // Don't render canvas at all on touch devices
+  if (isTouchDevice) return null;
 
   return (
     <canvas

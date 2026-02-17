@@ -9,7 +9,10 @@ const stats = [
 
 /* ── DNA Helix / Wave Animation ── */
 const WaveHelixAnimation = () => {
-  const nodeCount = 10;
+  const mobile =
+    typeof window !== "undefined" &&
+    (window.innerWidth < 768 || "ontouchstart" in window);
+  const nodeCount = mobile ? 5 : 10;
   return (
     <div className="relative w-full h-[350px] md:h-[420px] flex items-center justify-center overflow-hidden">
       {/* Vertical wave strands */}

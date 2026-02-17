@@ -10,8 +10,29 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
   const [phase, setPhase] = useState(0);
   const [visible, setVisible] = useState(true);
 
+  const mobile =
+    typeof window !== "undefined" &&
+    (window.innerWidth < 768 || "ontouchstart" in window);
+
   useEffect(() => {
-    // Curtain slides away first, then loading phases begin
+    // Mobile: much faster timings (5.5s total vs 10s)
+    if (mobile) {
+      const timers = [
+        setTimeout(() => setCurtainDone(true), 2200),
+        setTimeout(() => setPhase(1), 2400),
+        setTimeout(() => setPhase(2), 3200),
+        setTimeout(() => setPhase(3), 3800),
+        setTimeout(() => setPhase(4), 4300),
+        setTimeout(() => setPhase(5), 4800),
+        setTimeout(() => {
+          setVisible(false);
+          setTimeout(() => onComplete(), 400);
+        }, 5500),
+      ];
+      return () => timers.forEach(clearTimeout);
+    }
+
+    // Desktop: original timings
     const curtainTimer = setTimeout(() => setCurtainDone(true), 4200);
     const timers = [
       curtainTimer,
@@ -26,7 +47,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
       }, 10000),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [onComplete]);
+  }, [onComplete, mobile]);
 
   return (
     <AnimatePresence>
@@ -48,7 +69,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
               className="absolute top-0 bottom-0 left-0 w-[52%]"
               initial={{ x: "0%" }}
               animate={{ x: "-100%" }}
-              transition={{ duration: 3, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: mobile ? 1.8 : 3, delay: mobile ? 0.4 : 1, ease: [0.16, 1, 0.3, 1] }}
             >
               {/* Base red fabric */}
               <div className="absolute inset-0" style={{
@@ -82,33 +103,36 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                 `,
               }} />
 
-              {/* Top drape — curved valance */}
-              <div className="absolute top-0 left-0 right-0 h-[14%]" style={{
-                background: `
-                  radial-gradient(ellipse 40% 100% at 20% 0%, #1a0000 0%, transparent 80%),
-                  radial-gradient(ellipse 40% 100% at 55% 0%, #1a0000 0%, transparent 80%),
-                  radial-gradient(ellipse 40% 100% at 85% 0%, #1a0000 0%, transparent 80%),
-                  radial-gradient(ellipse 60% 90% at 35% 100%, rgba(204,0,0,0.6) 0%, transparent 70%),
-                  radial-gradient(ellipse 60% 90% at 70% 100%, rgba(204,0,0,0.6) 0%, transparent 70%)
-                `,
-              }} />
+              {/* Top drape — skip on mobile */}
+              {!mobile && (
+                <div className="absolute top-0 left-0 right-0 h-[14%]" style={{
+                  background: `
+                    radial-gradient(ellipse 40% 100% at 20% 0%, #1a0000 0%, transparent 80%),
+                    radial-gradient(ellipse 40% 100% at 55% 0%, #1a0000 0%, transparent 80%),
+                    radial-gradient(ellipse 40% 100% at 85% 0%, #1a0000 0%, transparent 80%),
+                    radial-gradient(ellipse 60% 90% at 35% 100%, rgba(204,0,0,0.6) 0%, transparent 70%),
+                    radial-gradient(ellipse 60% 90% at 70% 100%, rgba(204,0,0,0.6) 0%, transparent 70%)
+                  `,
+                }} />
+              )}
 
-              {/* Right edge — draped fold shadow where curtains meet */}
+              {/* Right edge shadow */}
               <div className="absolute top-0 bottom-0 right-0 w-[15%]" style={{
                 background: `linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.5) 100%)`,
               }} />
 
-              {/* Fabric sheen */}
-              <motion.div
-                className="absolute inset-0"
-                style={{
-                  background: `radial-gradient(ellipse 70% 50% at 40% 35%, rgba(255,120,120,0.12) 0%, transparent 70%)`,
-                }}
-                animate={{ opacity: [0.4, 0.7, 0.4] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              />
+              {/* Fabric sheen — skip on mobile */}
+              {!mobile && (
+                <motion.div
+                  className="absolute inset-0"
+                  style={{
+                    background: `radial-gradient(ellipse 70% 50% at 40% 35%, rgba(255,120,120,0.12) 0%, transparent 70%)`,
+                  }}
+                  animate={{ opacity: [0.4, 0.7, 0.4] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                />
+              )}
 
-              {/* Bottom shadow */}
               <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
             </motion.div>
 
@@ -117,7 +141,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
               className="absolute top-0 bottom-0 right-0 w-[52%]"
               initial={{ x: "0%" }}
               animate={{ x: "100%" }}
-              transition={{ duration: 3, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: mobile ? 1.8 : 3, delay: mobile ? 0.4 : 1, ease: [0.16, 1, 0.3, 1] }}
             >
               {/* Base red fabric */}
               <div className="absolute inset-0" style={{
@@ -151,37 +175,40 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                 `,
               }} />
 
-              {/* Top drape — curved valance */}
-              <div className="absolute top-0 left-0 right-0 h-[14%]" style={{
-                background: `
-                  radial-gradient(ellipse 40% 100% at 15% 0%, #1a0000 0%, transparent 80%),
-                  radial-gradient(ellipse 40% 100% at 45% 0%, #1a0000 0%, transparent 80%),
-                  radial-gradient(ellipse 40% 100% at 80% 0%, #1a0000 0%, transparent 80%),
-                  radial-gradient(ellipse 60% 90% at 30% 100%, rgba(204,0,0,0.6) 0%, transparent 70%),
-                  radial-gradient(ellipse 60% 90% at 65% 100%, rgba(204,0,0,0.6) 0%, transparent 70%)
-                `,
-              }} />
+              {/* Top drape — skip on mobile */}
+              {!mobile && (
+                <div className="absolute top-0 left-0 right-0 h-[14%]" style={{
+                  background: `
+                    radial-gradient(ellipse 40% 100% at 15% 0%, #1a0000 0%, transparent 80%),
+                    radial-gradient(ellipse 40% 100% at 45% 0%, #1a0000 0%, transparent 80%),
+                    radial-gradient(ellipse 40% 100% at 80% 0%, #1a0000 0%, transparent 80%),
+                    radial-gradient(ellipse 60% 90% at 30% 100%, rgba(204,0,0,0.6) 0%, transparent 70%),
+                    radial-gradient(ellipse 60% 90% at 65% 100%, rgba(204,0,0,0.6) 0%, transparent 70%)
+                  `,
+                }} />
+              )}
 
-              {/* Left edge — draped fold shadow where curtains meet */}
+              {/* Left edge shadow */}
               <div className="absolute top-0 bottom-0 left-0 w-[15%]" style={{
                 background: `linear-gradient(270deg, transparent 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.5) 100%)`,
               }} />
 
-              {/* Fabric sheen */}
-              <motion.div
-                className="absolute inset-0"
-                style={{
-                  background: `radial-gradient(ellipse 70% 50% at 60% 35%, rgba(255,120,120,0.12) 0%, transparent 70%)`,
-                }}
-                animate={{ opacity: [0.4, 0.7, 0.4] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              />
+              {/* Fabric sheen — skip on mobile */}
+              {!mobile && (
+                <motion.div
+                  className="absolute inset-0"
+                  style={{
+                    background: `radial-gradient(ellipse 70% 50% at 60% 35%, rgba(255,120,120,0.12) 0%, transparent 70%)`,
+                  }}
+                  animate={{ opacity: [0.4, 0.7, 0.4] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                />
+              )}
 
-              {/* Bottom shadow */}
               <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
             </motion.div>
 
-            {/* ── Center seam line where curtains meet ── */}
+            {/* Center seam line */}
             <motion.div
               className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[3px]"
               style={{
@@ -189,11 +216,11 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
               }}
               initial={{ opacity: 0.8 }}
               animate={{ opacity: 0, scaleX: 0 }}
-              transition={{ duration: 1.5, delay: 1.2, ease: "easeOut" }}
+              transition={{ duration: 1.5, delay: mobile ? 0.6 : 1.2, ease: "easeOut" }}
             />
           </motion.div>
-          {/* Animated background particles */}
-          {Array.from({ length: 20 }).map((_, i) => (
+          {/* Animated background particles — fewer on mobile */}
+          {Array.from({ length: mobile ? 6 : 20 }).map((_, i) => (
             <motion.div
               key={i}
               className="absolute rounded-full"
@@ -219,10 +246,10 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
             />
           ))}
 
-          {/* Pulsing rings behind text */}
+          {/* Pulsing rings behind text — fewer on mobile */}
           {phase >= 1 && (
             <>
-              {[0, 1, 2].map((i) => (
+              {(mobile ? [0] : [0, 1, 2]).map((i) => (
                 <motion.div
                   key={`ring-${i}`}
                   className="absolute rounded-full border border-tedx-red/20"
@@ -288,7 +315,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                 {"TED".split("").map((char, i) => (
                   <motion.span
                     key={`outline-${i}`}
-                    className="font-heading text-7xl md:text-[10rem] lg:text-[13rem] font-black"
+                    className="font-heading text-5xl sm:text-7xl md:text-[10rem] lg:text-[13rem] font-black"
                     style={{
                       WebkitTextStroke: "2px hsl(var(--tedx-red))",
                       color: "transparent",
@@ -301,7 +328,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                   </motion.span>
                 ))}
                 <motion.span
-                  className="font-heading text-5xl md:text-[7rem] lg:text-[10rem] font-black"
+                  className="font-heading text-3xl sm:text-5xl md:text-[7rem] lg:text-[10rem] font-black"
                   style={{
                     WebkitTextStroke: "2px hsl(var(--tedx-red))",
                     color: "transparent",
@@ -333,7 +360,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                   {"TED".split("").map((char, i) => (
                     <motion.span
                       key={`filled-${i}`}
-                      className="font-heading text-7xl md:text-[10rem] lg:text-[13rem] font-black"
+                      className="font-heading text-5xl sm:text-7xl md:text-[10rem] lg:text-[13rem] font-black"
                       style={{ WebkitTextStroke: "2px hsl(var(--tedx-red))" }}
                       initial={{ color: "transparent" }}
                       animate={{ color: "hsl(var(--tedx-red))" }}
@@ -343,7 +370,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                     </motion.span>
                   ))}
                   <motion.span
-                    className="font-heading text-5xl md:text-[7rem] lg:text-[10rem] font-black text-tedx-red"
+                    className="font-heading text-3xl sm:text-5xl md:text-[7rem] lg:text-[10rem] font-black text-tedx-red"
                     initial={{ color: "transparent" }}
                     animate={{ color: "hsl(var(--tedx-red))" }}
                     transition={{ duration: 0.3, delay: 0.3 }}
@@ -356,7 +383,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                 {phase === 2 && (
                   <>
                     <motion.span
-                      className="absolute font-heading text-7xl md:text-[10rem] lg:text-[13rem] font-black text-tedx-red/30"
+                      className="absolute font-heading text-5xl sm:text-7xl md:text-[10rem] lg:text-[13rem] font-black text-tedx-red/30"
                       initial={{ x: 0 }}
                       animate={{ x: [0, 5, -3, 0], opacity: [0, 0.5, 0.3, 0] }}
                       transition={{ duration: 0.4 }}
@@ -365,7 +392,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                       TED
                     </motion.span>
                     <motion.span
-                      className="absolute font-heading text-7xl md:text-[10rem] lg:text-[13rem] font-black"
+                      className="absolute font-heading text-5xl sm:text-7xl md:text-[10rem] lg:text-[13rem] font-black"
                       initial={{ x: 0 }}
                       animate={{ x: [0, -4, 6, 0], opacity: [0, 0.3, 0.2, 0] }}
                       transition={{ duration: 0.5, delay: 0.1 }}
@@ -388,7 +415,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                 {"KPRCAS".split("").map((char, i) => (
                   <motion.span
                     key={`kpr-${i}`}
-                    className="font-heading text-5xl md:text-[7rem] lg:text-[9rem] font-black tracking-wider text-foreground"
+                    className="font-heading text-3xl sm:text-5xl md:text-[7rem] lg:text-[9rem] font-black tracking-wider text-foreground"
                     initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                     transition={{

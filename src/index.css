@@ -85,6 +85,7 @@
 
   .marquee {
     animation: marquee 20s linear infinite;
+    will-change: transform;
   }
 
   .border-tedx-red {
@@ -99,6 +100,7 @@
 
 .marquee-sprocket {
   animation: marquee 30s linear infinite;
+  will-change: transform;
 }
 
 @keyframes pulse-glow {
