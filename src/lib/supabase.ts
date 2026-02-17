@@ -100,3 +100,13 @@ export type Event = {
   updated_at?: string;
 };
 
+export type GalleryImage = {
+  id?: string;
+  title: string;
+  description?: string;
+  image: string;
+  order: number;
+  created_at?: string;
+  updated_at?: string;
+};
+

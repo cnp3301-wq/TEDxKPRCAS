@@ -8,6 +8,7 @@ import {
   contactService,
   aboutService,
   eventService,
+  galleryService,
 } from "@/lib/api";
 import type {
   Participant,
@@ -16,6 +17,7 @@ import type {
   ContactInfo,
   AboutInfo,
   Event,
+  GalleryImage,
 } from "@/lib/supabase";
 
 // ==================== PARTICIPANTS HOOKS ====================
@@ -394,44 +396,74 @@ export function useDeleteEvent() {
 // ==================== GALLERY HOOKS ====================
 
 export function useGalleryImages() {
-  return useQuery({
+  const queryClient = useQueryClient();
+  const subscriptionRef = useRef<any>(null);
+
+  const query = useQuery({
     queryKey: ["gallery"],
-    queryFn: async () => {
-      // Mock data - replace with actual API call
-      return [
+    queryFn: () => galleryService.getAll(),
+    staleTime: 0,
+  });
+
+  useEffect(() => {
+    if (subscriptionRef.current) return;
+
+    console.log("📡 Setting up gallery real-time subscription...");
+    subscriptionRef.current = supabase
+      .channel("gallery-channel")
+      .on(
+        "postgres_changes",
         {
-          id: "1",
-          url: "https://via.placeholder.com/400x400?text=Event+1",
-          title: "Event Photo 1",
-          createdAt: new Date().toISOString(),
+          event: "*",
+          schema: "public",
+          table: "gallery",
         },
-        {
-          id: "2",
-          url: "https://via.placeholder.com/400x400?text=Event+2",
-          title: "Event Photo 2",
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: "3",
-          url: "https://via.placeholder.com/400x400?text=Event+3",
-          title: "Event Photo 3",
-          createdAt: new Date().toISOString(),
-        },
-      ];
+        (payload: any) => {
+          console.log("🔄 Gallery updated from database:", payload);
+          queryClient.invalidateQueries({ queryKey: ["gallery"] });
+        }
+      )
+      .subscribe((status: string) => {
+        console.log("📡 Gallery subscription status:", status);
+      });
+
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
+    };
+  }, [queryClient]);
+
+  return query;
+}
+
+export function useCreateGalleryImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Omit<GalleryImage, "id" | "created_at" | "updated_at">) =>
+      galleryService.create(data),
+    onSuccess: () => {
+      console.log("✅ Gallery image created successfully");
+      queryClient.invalidateQueries({ queryKey: ["gallery"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to create gallery image:", error);
     },
   });
 }
 
-export function useUploadGalleryImage() {
+export function useUpdateGalleryImage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (file: File) => {
-      // Upload to Supabase storage
-      // Return the image data
-      return { id: "new-id", url: "image-url", title: file.name };
-    },
+    mutationFn: ({ id, data }: { id: string; data: Partial<GalleryImage> }) =>
+      galleryService.update(id, data),
     onSuccess: () => {
+      console.log("✅ Gallery image updated successfully");
       queryClient.invalidateQueries({ queryKey: ["gallery"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to update gallery image:", error);
     },
   });
 }
@@ -439,12 +471,13 @@ export function useUploadGalleryImage() {
 export function useDeleteGalleryImage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => {
-      // Delete from Supabase storage
-      return Promise.resolve();
-    },
+    mutationFn: (id: string) => galleryService.delete(id),
     onSuccess: () => {
+      console.log("✅ Gallery image deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["gallery"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to delete gallery image:", error);
     },
   });
 }

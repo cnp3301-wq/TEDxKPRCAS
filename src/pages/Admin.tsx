@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, CheckCircle, Shield, Trash2, Filter, Users,
   Calendar, ChevronDown, Search, X, Mail, Palette, Plus, Edit2,
-  MessageSquare, Phone, MapPin, Link as LinkIcon, Upload, Eye,
+  MessageSquare, Phone, MapPin, Link as LinkIcon, Upload, Eye, Image,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,10 @@ import {
   useUpdateContactInfo,
   useAboutInfo,
   useUpdateAboutInfo,
+  useGalleryImages,
+  useCreateGalleryImage,
+  useUpdateGalleryImage,
+  useDeleteGalleryImage,
 } from "@/hooks/use-database";
 
 // Type definitions
@@ -53,7 +57,7 @@ type Participant = {
 
 
 const AdminPage = () => {
-  const [tab, setTab] = useState<"participants" | "speakers" | "certificates" | "about" | "contact">("participants");
+  const [tab, setTab] = useState<"participants" | "speakers" | "certificates" | "about" | "contact" | "gallery">("participants");
 
   // Toast/Notification state
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -82,6 +86,12 @@ const AdminPage = () => {
   // Database hooks for about info
   const { data: about = {}, isLoading: aboutLoading } = useAboutInfo();
   const { mutate: updateAbout } = useUpdateAboutInfo();
+
+  // Database hooks for gallery
+  const { data: galleryImages = [], isLoading: galleryLoading } = useGalleryImages();
+  const { mutate: createGalleryImage } = useCreateGalleryImage();
+  const { mutate: updateGalleryImage } = useUpdateGalleryImage();
+  const { mutate: deleteGalleryImage } = useDeleteGalleryImage();
 
   // Certificate management state
   const [showCertificateDesigner, setShowCertificateDesigner] = useState(false);
@@ -112,6 +122,11 @@ const AdminPage = () => {
   // Contact UI state
   const [editingContact, setEditingContact] = useState(false);
   const [contactFormData, setContactFormData] = useState({ email: "", phone: "", address: "", formLink: "", registrationLink: "" });
+
+  // Gallery UI state
+  const [showGalleryForm, setShowGalleryForm] = useState(false);
+  const [editingGalleryItem, setEditingGalleryItem] = useState<any>(null);
+  const [galleryFormData, setGalleryFormData] = useState({ title: "", description: "", image: "" });
 
   // Certificate & Import state
   const [showCertificatePreview, setShowCertificatePreview] = useState(false);
@@ -299,6 +314,79 @@ const AdminPage = () => {
     showNotification("success", `${importedData.length} participants imported successfully!`);
   };
 
+  // Gallery functions
+  const addGalleryItem = () => {
+    setEditingGalleryItem(null);
+    setGalleryFormData({ title: "", description: "", image: "" });
+    setShowGalleryForm(true);
+  };
+
+  const editGalleryItem = (item: any) => {
+    setEditingGalleryItem(item);
+    setGalleryFormData({ title: item.title, description: item.description || "", image: item.image || "" });
+    setShowGalleryForm(true);
+  };
+
+  const saveGalleryItem = () => {
+    if (!galleryFormData.title || !galleryFormData.image) {
+      showNotification("error", "Please fill in title and image");
+      return;
+    }
+
+    if (editingGalleryItem && editingGalleryItem.id) {
+      updateGalleryImage(
+        {
+          id: editingGalleryItem.id,
+          data: {
+            title: galleryFormData.title,
+            description: galleryFormData.description || undefined,
+            image: galleryFormData.image,
+          },
+        },
+        {
+          onSuccess: () => {
+            showNotification("success", "Gallery item updated!");
+            setShowGalleryForm(false);
+          },
+          onError: (error) => showNotification("error", `Failed: ${error.message}`),
+        }
+      );
+    } else {
+      createGalleryImage(
+        {
+          title: galleryFormData.title,
+          description: galleryFormData.description || undefined,
+          image: galleryFormData.image,
+          order: galleryImages.length,
+        },
+        {
+          onSuccess: () => {
+            showNotification("success", "Gallery item added!");
+            setShowGalleryForm(false);
+          },
+          onError: (error) => showNotification("error", `Failed: ${error.message}`),
+        }
+      );
+    }
+  };
+
+  const handleDeleteGalleryItem = (id: string) => {
+    deleteGalleryImage(id, {
+      onSuccess: () => showNotification("success", "Gallery item deleted!"),
+      onError: (error) => showNotification("error", `Failed: ${error.message}`),
+    });
+  };
+
+  const handleGalleryImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setGalleryFormData((prev) => ({ ...prev, image: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const hasActiveFilters = searchQuery || dateFrom || dateTo;
 
   return (
@@ -379,6 +467,7 @@ const AdminPage = () => {
             { id: "certificates", label: "Certificates", icon: Palette },
             { id: "about", label: "About", icon: MessageSquare },
             { id: "contact", label: "Contact", icon: Phone },
+            { id: "gallery", label: "Gallery", icon: Image },
           ].map((item) => {
             const Icon = item.icon;
             return (
@@ -1144,6 +1233,167 @@ const AdminPage = () => {
                         </a>
                       </div>
                     </div>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* ==================== GALLERY TAB ==================== */}
+          {tab === "gallery" && (
+            <motion.div key="gallery" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <motion.div className="border border-border rounded-2xl p-8 bg-card/60 backdrop-blur-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="font-heading text-2xl font-bold">Gallery Management</h2>
+                  <button
+                    onClick={addGalleryItem}
+                    className="bg-primary/20 hover:bg-primary/30 text-primary font-medium px-4 py-2 rounded-lg flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Image
+                  </button>
+                </div>
+
+                {/* Gallery Form Dialog */}
+                <Dialog open={showGalleryForm} onOpenChange={setShowGalleryForm}>
+                  <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>{editingGalleryItem ? "Edit Gallery Item" : "Add Gallery Item"}</DialogTitle>
+                      <DialogDescription>Upload an image with a name and description</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      {/* Image Upload */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Image *</label>
+                        {galleryFormData.image ? (
+                          <div className="relative">
+                            <img
+                              src={galleryFormData.image}
+                              alt="Preview"
+                              className="w-full h-48 object-cover rounded-lg border border-border"
+                            />
+                            <button
+                              onClick={() => setGalleryFormData((prev) => ({ ...prev, image: "" }))}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-8 hover:border-primary/50 transition-colors">
+                            <Upload className="w-8 h-8 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Click to upload image</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleGalleryImageUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">Or paste an image URL:</p>
+                        <input
+                          type="url"
+                          value={galleryFormData.image}
+                          onChange={(e) => setGalleryFormData((prev) => ({ ...prev, image: e.target.value }))}
+                          placeholder="https://example.com/image.jpg"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2 mt-1 text-sm"
+                        />
+                      </div>
+                      {/* Title */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Name *</label>
+                        <input
+                          type="text"
+                          value={galleryFormData.title}
+                          onChange={(e) => setGalleryFormData((prev) => ({ ...prev, title: e.target.value }))}
+                          placeholder="Enter image name"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                        />
+                      </div>
+                      {/* Description */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Description</label>
+                        <textarea
+                          value={galleryFormData.description}
+                          onChange={(e) => setGalleryFormData((prev) => ({ ...prev, description: e.target.value }))}
+                          placeholder="Enter description"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-3 h-24 resize-none"
+                        />
+                      </div>
+                      {/* Actions */}
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          onClick={saveGalleryItem}
+                          className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-600 font-medium py-2.5 rounded-lg"
+                        >
+                          {editingGalleryItem ? "Update" : "Add"}
+                        </button>
+                        <button
+                          onClick={() => setShowGalleryForm(false)}
+                          className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2.5 rounded-lg"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Gallery Items List */}
+                {galleryLoading ? (
+                  <div className="text-center py-12">
+                    <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading gallery...</p>
+                  </div>
+                ) : galleryImages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Image className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No gallery images yet. Add your first one!</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {galleryImages.map((item: any) => (
+                      <motion.div
+                        key={item.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="border border-border rounded-xl overflow-hidden bg-card hover:border-primary/30 transition-colors group"
+                      >
+                        {item.image && (
+                          <div className="relative h-40 overflow-hidden">
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        )}
+                        <div className="p-4">
+                          <h3 className="font-bold text-sm truncate">{item.title}</h3>
+                          {item.description && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
+                          )}
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => editGalleryItem(item)}
+                              className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 text-xs font-medium py-1.5 rounded-lg flex items-center justify-center gap-1"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteGalleryItem(item.id)}
+                              className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-600 text-xs font-medium py-1.5 rounded-lg flex items-center justify-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 )}
               </motion.div>

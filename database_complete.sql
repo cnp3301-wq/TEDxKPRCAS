@@ -120,19 +120,32 @@ CREATE TABLE events (
 -- ==================== GALLERY TABLE ====================
 -- Stores gallery images for the event
 DROP TABLE IF EXISTS gallery CASCADE;
+
 CREATE TABLE gallery (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
   description TEXT,
-  url TEXT NOT NULL,
-  image_path TEXT NOT NULL,
-  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
-  uploaded_by TEXT,
-  file_size INTEGER,
-  mime_type TEXT DEFAULT 'image/jpeg',
+  image TEXT NOT NULL DEFAULT '',
+  "order" INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_gallery_order ON gallery("order");
+CREATE INDEX IF NOT EXISTS idx_gallery_created_at ON gallery(created_at);
+
+-- RLS
+ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "gallery_select" ON gallery FOR SELECT USING (true);
+CREATE POLICY "gallery_insert" ON gallery FOR INSERT WITH CHECK (true);
+CREATE POLICY "gallery_update" ON gallery FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "gallery_delete" ON gallery FOR DELETE USING (true);
+
+-- Enable realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE gallery;
 
 
 -- ============================================================================
@@ -161,10 +174,6 @@ CREATE INDEX IF NOT EXISTS idx_about_info_created_at ON about_info(created_at);
 
 -- Events indexes
 CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
-
--- Gallery indexes
-CREATE INDEX IF NOT EXISTS idx_gallery_event_id ON gallery(event_id);
-CREATE INDEX IF NOT EXISTS idx_gallery_created_at ON gallery(created_at);
 
 
 -- ============================================================================
@@ -259,10 +268,7 @@ CREATE POLICY "events_update" ON events FOR UPDATE USING (true) WITH CHECK (true
 CREATE POLICY "events_delete" ON events FOR DELETE USING (true);
 
 -- ==================== GALLERY POLICIES ====================
-CREATE POLICY "gallery_select" ON gallery FOR SELECT USING (true);
-CREATE POLICY "gallery_insert" ON gallery FOR INSERT WITH CHECK (true);
-CREATE POLICY "gallery_update" ON gallery FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "gallery_delete" ON gallery FOR DELETE USING (true);
+-- Policies already created in gallery table section above
 
 
 -- ============================================================================

@@ -6,6 +6,7 @@ import {
   ContactInfo,
   AboutInfo,
   Event,
+  GalleryImage,
 } from "./supabase";
 
 // ==================== PARTICIPANTS ====================
@@ -378,6 +379,63 @@ export const eventService = {
   async delete(id: string) {
     const { error } = await supabase
       .from("events")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+  },
+};
+
+// ==================== GALLERY ====================
+
+export const galleryService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from("gallery")
+      .select("*")
+      .order("order", { ascending: true });
+
+    if (error) throw error;
+    return data as GalleryImage[];
+  },
+
+  async getById(id: string) {
+    const { data, error } = await supabase
+      .from("gallery")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    return data as GalleryImage;
+  },
+
+  async create(item: Omit<GalleryImage, "id" | "created_at" | "updated_at">) {
+    const { data, error } = await supabase
+      .from("gallery")
+      .insert([item])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as GalleryImage;
+  },
+
+  async update(id: string, item: Partial<GalleryImage>) {
+    const { data, error } = await supabase
+      .from("gallery")
+      .update(item)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as GalleryImage;
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase
+      .from("gallery")
       .delete()
       .eq("id", id);
 
