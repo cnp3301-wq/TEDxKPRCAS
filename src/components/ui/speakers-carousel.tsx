@@ -289,12 +289,12 @@ const SpeakerCard = ({
       >
         <div
           className={cn(
-            "rounded-3xl bg-gradient-to-b from-slate-800 to-slate-900 h-[500px] md:h-[550px] w-80 md:w-96 overflow-hidden flex flex-col items-center justify-center relative z-10 shadow-xl border border-tedx-red/30 hover:border-tedx-red/60 transition-colors",
+            "rounded-3xl bg-transparent backdrop-blur-sm h-[500px] md:h-[550px] w-80 md:w-96 overflow-hidden flex flex-col items-center justify-center relative z-10 shadow-xl border border-tedx-red/30 hover:border-tedx-red/60 transition-colors",
             index % 2 === 0 ? "rotate-0" : "-rotate-0"
           )}
         >
           {/* Background with overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-tedx-red/10 via-transparent to-slate-900 opacity-40" />
+          <div className="absolute inset-0 bg-gradient-to-br from-tedx-red/5 via-transparent to-transparent opacity-40" />
           
           {/* Profile Image */}
           <div className="w-[120px] h-[120px] md:w-[160px] md:h-[160px] overflow-hidden rounded-full border-4 border-tedx-red/50 aspect-square flex-none relative z-20">

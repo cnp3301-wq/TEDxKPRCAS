@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
 import SpeakersSection from "@/components/SpeakersSection";
+import StatsSection from "@/components/StatsSection";
 import CountdownSection from "@/components/CountdownSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
@@ -28,14 +29,17 @@ const Index = () => {
       <CursorParticles />
       <Navbar />
       <HeroSection />
+      <ScrollReveal direction="up" delay={0.1}>
+        <CountdownSection />
+      </ScrollReveal>
       <ScrollReveal direction="up">
         <AboutSection />
       </ScrollReveal>
+      <ScrollReveal direction="up" delay={0.1}>
+        <StatsSection />
+      </ScrollReveal>
       <ScrollReveal direction="left" delay={0.1}>
         <SpeakersSection />
-      </ScrollReveal>
-      <ScrollReveal direction="up" delay={0.1}>
-        <CountdownSection />
       </ScrollReveal>
       <ScrollReveal direction="right" delay={0.1}>
         <ContactSection />

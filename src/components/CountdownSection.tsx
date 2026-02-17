@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
 
 const TARGET_DATE = new Date("2025-12-31T00:00:00");
 
 const CountdownSection = () => {
   const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [registrationLink, setRegistrationLink] = useState("https://forms.gle/example");
 
   useEffect(() => {
     const update = () => {
@@ -22,13 +24,100 @@ const CountdownSection = () => {
     return () => clearInterval(id);
   }, []);
 
+  useEffect(() => {
+    const savedContact = localStorage.getItem("tedx_contact");
+    if (savedContact) {
+      try {
+        const contactData = JSON.parse(savedContact);
+        setRegistrationLink(contactData.registrationLink || "https://forms.gle/example");
+      } catch (e) {
+        console.error("Error parsing contact data:", e);
+      }
+    }
+  }, []);
+
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
     <section className="py-24 relative overflow-hidden">
       <AnimatedBackground variant="accent" particleCount={8} />
 
-      <div className="container mx-auto px-4 text-center relative z-10">
+      <div className="container mx-auto px-4 relative z-10">
+        {/* ── Three Feature Cards Above Timer ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto mb-16">
+          {/* Card 1: Speaker Image */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            whileHover={{ scale: 1.03, y: -5 }}
+            className="rounded-2xl overflow-hidden border border-white/10 aspect-[4/5] bg-gradient-to-b from-gray-800/50 to-gray-900/50 backdrop-blur-sm"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=400&h=500&fit=crop&crop=faces"
+              alt="TEDx Speaker"
+              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+            />
+          </motion.div>
+
+          {/* Card 2: Theme Image */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            whileHover={{ scale: 1.03, y: -5 }}
+            className="rounded-2xl overflow-hidden border border-white/10 aspect-[4/5] bg-white flex items-center justify-center"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1597873618537-64a04bae4a27?w=400&h=500&fit=crop"
+              alt="TEDx Theme"
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+
+          {/* Card 3: Date + Book Tickets */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-col gap-4"
+          >
+            {/* Book Tickets Button */}
+            <motion.a
+              href={registrationLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-tedx-red hover:bg-tedx-dark-red text-white font-heading font-black text-xl md:text-2xl px-8 py-4 rounded-2xl flex items-center justify-center gap-3 transition-colors"
+              whileHover={{ scale: 1.05, boxShadow: "0 0 30px hsl(0 84% 50% / 0.5)" }}
+              whileTap={{ scale: 0.95 }}
+            >
+              BOOK TICKETS <ArrowUpRight className="w-6 h-6" />
+            </motion.a>
+
+            {/* Date Card */}
+            <motion.div
+              whileHover={{ scale: 1.03, y: -3 }}
+              className="flex-1 rounded-2xl bg-black border border-white/10 flex items-center justify-center p-6 md:p-8"
+            >
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="text-center">
+                  <span className="font-heading text-6xl md:text-8xl font-black text-tedx-red leading-none block">23</span>
+                  <span className="font-heading text-4xl md:text-6xl font-black text-tedx-red leading-none block -mt-1">MAR</span>
+                </div>
+                <div className="w-[3px] h-20 md:h-28 bg-white/30 rounded-full" />
+                <div className="font-heading text-5xl md:text-7xl font-black text-white leading-none" style={{ writingMode: "vertical-lr" }}>
+                  2025
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* ── Countdown Timer ── */}
+        <div className="text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -123,6 +212,7 @@ const CountdownSection = () => {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </section>

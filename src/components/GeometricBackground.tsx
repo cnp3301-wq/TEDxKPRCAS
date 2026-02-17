@@ -31,7 +31,7 @@ const GeometricBackground = () => {
       cubes.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: 15 + depth * 40 + Math.random() * 20,
+        size: 25 + depth * 60 + Math.random() * 30,
         rotationSpeed: (0.2 + Math.random() * 0.5) * (Math.random() > 0.5 ? 1 : -1),
         rotation: Math.random() * Math.PI * 2,
         glowIntensity: 0.3 + Math.random() * 0.7,
