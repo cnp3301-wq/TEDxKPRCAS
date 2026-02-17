@@ -7,8 +7,9 @@ interface SpeakerFormProps {
     name: string;
     role: string;
     image: string;
+    bio?: string;
   };
-  onSave: (data: { name: string; role: string; image: string }) => void;
+  onSave: (data: { name: string; role: string; image: string; bio: string }) => void;
   onCancel: () => void;
 }
 
@@ -17,6 +18,7 @@ const SpeakerFormWithImage = ({ initialData, onSave, onCancel }: SpeakerFormProp
     name: initialData?.name || "",
     role: initialData?.role || "",
     image: initialData?.image || "",
+    bio: initialData?.bio || "",
   });
   const [preview, setPreview] = useState<string>(initialData?.image || "");
 
@@ -62,6 +64,17 @@ const SpeakerFormWithImage = ({ initialData, onSave, onCancel }: SpeakerFormProp
           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
           className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5"
           placeholder="Enter role (e.g., Industry Expert)"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Description/Bio</label>
+        <textarea
+          value={formData.bio}
+          onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+          className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5 resize-none"
+          placeholder="Enter speaker description or bio (e.g., achievements, expertise, etc.)"
+          rows={4}
         />
       </div>
 

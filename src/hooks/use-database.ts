@@ -1,4 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   participantService,
   speakerService,
@@ -19,10 +21,38 @@ import type {
 // ==================== PARTICIPANTS HOOKS ====================
 
 export function useParticipants() {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["participants"],
     queryFn: () => participantService.getAll(),
+    staleTime: 0, // Instant updates
   });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const subscription = supabase
+      .channel("participants-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "participants",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["participants"] });
+          console.log("🔄 Participants updated from database");
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useParticipant(id: string) {
@@ -89,10 +119,55 @@ export function useImportParticipants() {
 // ==================== SPEAKERS HOOKS ====================
 
 export function useSpeakers() {
-  return useQuery({
+  const queryClient = useQueryClient();
+  const subscriptionRef = useRef<any>(null);
+  
+  const query = useQuery({
     queryKey: ["speakers"],
     queryFn: () => speakerService.getAll(),
+    staleTime: 0, // Set to 0 for instant updates
   });
+
+  // Set up real-time subscription - only once
+  useEffect(() => {
+    // Prevent duplicate subscriptions
+    if (subscriptionRef.current) {
+      console.log("📡 Speakers subscription already exists");
+      return;
+    }
+
+    console.log("📡 Setting up speakers real-time subscription...");
+
+    // Subscribe to changes in the speakers table
+    subscriptionRef.current = supabase
+      .channel("speakers-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "speakers",
+        },
+        (payload) => {
+          console.log("🔄 Speakers updated from database:", payload);
+          // Invalidate the cache immediately
+          queryClient.invalidateQueries({ queryKey: ["speakers"] });
+        }
+      )
+      .subscribe((status) => {
+        console.log("📡 Speakers subscription status:", status);
+      });
+
+    return () => {
+      if (subscriptionRef.current) {
+        console.log("🛑 Unsubscribing from speakers channel");
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useSpeaker(id: string) {
@@ -108,7 +183,12 @@ export function useCreateSpeaker() {
     mutationFn: (data: Omit<Speaker, "id" | "created_at" | "updated_at">) =>
       speakerService.create(data),
     onSuccess: () => {
+      console.log("✅ Speaker created successfully");
+      // Immediately invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["speakers"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to create speaker:", error);
     },
   });
 }
@@ -119,7 +199,12 @@ export function useUpdateSpeaker() {
     mutationFn: ({ id, data }: { id: string; data: Partial<Speaker> }) =>
       speakerService.update(id, data),
     onSuccess: () => {
+      console.log("✅ Speaker updated successfully");
+      // Immediately invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["speakers"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to update speaker:", error);
     },
   });
 }
@@ -129,7 +214,12 @@ export function useDeleteSpeaker() {
   return useMutation({
     mutationFn: (id: string) => speakerService.delete(id),
     onSuccess: () => {
+      console.log("✅ Speaker deleted successfully");
+      // Immediately invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["speakers"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to delete speaker:", error);
     },
   });
 }
@@ -164,10 +254,36 @@ export function useUpdateCertificate() {
 // ==================== CONTACT INFO HOOKS ====================
 
 export function useContactInfo() {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["contact"],
     queryFn: () => contactService.get(),
+    staleTime: 0, // Instant updates
   });
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel("contact-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "contact_info",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["contact"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useUpdateContactInfo() {
@@ -184,10 +300,36 @@ export function useUpdateContactInfo() {
 // ==================== ABOUT INFO HOOKS ====================
 
 export function useAboutInfo() {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["about"],
     queryFn: () => aboutService.get(),
+    staleTime: 0, // Instant updates
   });
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel("about-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "about_info",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["about"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useUpdateAboutInfo() {

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { AlertCircle } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
 import { useAboutInfo } from "@/hooks/use-database";
 
@@ -10,7 +11,7 @@ const stats = [
 ];
 
 const AboutSection = () => {
-  const { data: aboutData, isLoading } = useAboutInfo();
+  const { data: aboutData, isLoading, isError, error } = useAboutInfo();
 
   // Use database content if available, otherwise show default
   const content = aboutData?.content || "TEDx KPRCAS is a locally organised independently run event. Rooted in the spirit of TED's mission, it brings together thought leaders, innovators, and changemakers to share ideas worth spreading. At KPR College of Arts Science and Research, we celebrate the power of storytelling, innovation, and community building through extraordinary talks and experiences.";
@@ -34,8 +35,20 @@ const AboutSection = () => {
             >
               About
             </motion.h2>
-            {isLoading ? (
-              <p className="text-muted-foreground leading-relaxed text-lg animate-pulse">Loading...</p>
+            {isError ? (
+              <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-red-500 font-medium text-sm">Error loading about information</p>
+                  <p className="text-muted-foreground text-xs mt-1">{error?.message || "Unable to load content at this time."}</p>
+                </div>
+              </div>
+            ) : isLoading ? (
+              <div className="space-y-2">
+                <div className="h-4 bg-muted rounded animate-pulse"></div>
+                <div className="h-4 bg-muted rounded animate-pulse w-5/6"></div>
+                <div className="h-4 bg-muted rounded animate-pulse w-4/6"></div>
+              </div>
             ) : (
               <p className="text-muted-foreground leading-relaxed text-lg">
                 {content}

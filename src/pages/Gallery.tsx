@@ -4,10 +4,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useGalleryImages } from "@/hooks/use-database";
-import { Upload, X } from "lucide-react";
+import { Upload, X, AlertCircle } from "lucide-react";
 
 const Gallery = () => {
-  const { data: galleryImages = [], isLoading } = useGalleryImages();
+  const { data: galleryImages = [], isLoading, isError, error } = useGalleryImages();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -109,12 +109,32 @@ const Gallery = () => {
           </motion.div>
 
           {/* Gallery Grid */}
-          {isLoading ? (
+          {isError ? (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16"
+            >
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <AlertCircle className="w-6 h-6 text-tedx-red" />
+                <p className="text-tedx-red text-lg font-medium">Error loading gallery</p>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                {error?.message || "Unable to load gallery images at this time."}
+              </p>
+              <p className="text-muted-foreground text-xs mt-2">
+                Please try again later or refresh the page.
+              </p>
+            </motion.div>
+          ) : isLoading ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center py-16"
             >
+              <div className="inline-block mb-4">
+                <div className="w-8 h-8 border-4 border-tedx-red/30 border-t-tedx-red rounded-full animate-spin"></div>
+              </div>
               <p className="text-muted-foreground text-lg animate-pulse">Loading gallery...</p>
             </motion.div>
           ) : galleryImages.length === 0 ? (

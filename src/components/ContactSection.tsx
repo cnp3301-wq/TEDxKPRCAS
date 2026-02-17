@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
-import { Instagram, Mail, Linkedin } from "lucide-react";
+import { Instagram, Mail, Linkedin, AlertCircle } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
 import { useContactInfo } from "@/hooks/use-database";
 
 const ContactSection = () => {
-  const { data: contactData, isLoading } = useContactInfo();
+  const { data: contactData, isLoading, isError, error } = useContactInfo();
 
   // Use database email if available, otherwise show default
   const email = contactData?.email || "tedxkprcas@gmail.com";
@@ -52,8 +52,19 @@ const ContactSection = () => {
             <p className="font-heading text-lg font-bold text-foreground uppercase mb-6">We're Here To Help!</p>
             <div className="space-y-4 text-muted-foreground">
               <p className="font-heading text-lg uppercase">Contact Us</p>
-              {isLoading ? (
-                <p className="text-muted-foreground animate-pulse">Loading contact info...</p>
+              {isError ? (
+                <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded">
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 text-left">
+                    <p className="text-red-500 font-medium text-xs">Error loading contact info</p>
+                    <p className="text-muted-foreground text-xs mt-1">{error?.message || "Unable to load contact information."}</p>
+                  </div>
+                </div>
+              ) : isLoading ? (
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded animate-pulse w-3/4 mx-auto"></div>
+                  <div className="h-4 bg-muted rounded animate-pulse w-2/3 mx-auto"></div>
+                </div>
               ) : (
                 <>
                   <motion.a

@@ -1,15 +1,12 @@
 import { motion } from "framer-motion";
+import { AlertCircle } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
 import { useSpeakers } from "@/hooks/use-database";
-import { ThreeDImageRing } from "./ui/draggable-3d-image-ring";
+import { Carousel, SpeakerCard } from "./ui/speakers-carousel";
+import type { iSpeaker } from "./ui/speakers-carousel";
 
 const SpeakersSection = () => {
-  const { data: speakers = [], isLoading } = useSpeakers();
-
-  // Get speaker images for 3D ring
-  const speakerImages = speakers
-    .filter((s) => s.image)
-    .map((s) => s.image as string);
+  const { data: speakers = [], isLoading, isError, error } = useSpeakers();
 
   return (
     <section id="speakers" className="py-24 bg-secondary/30 relative overflow-hidden">
@@ -34,89 +31,81 @@ const SpeakersSection = () => {
           Stay tuned for our incredible lineup of speakers.
         </motion.p>
 
-        {isLoading ? (
+        {isError ? (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center py-16"
           >
-            <p className="text-muted-foreground text-xl animate-pulse">Loading speakers...</p>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <AlertCircle className="w-6 h-6 text-tedx-red" />
+              <p className="text-tedx-red text-lg font-medium">Error loading speakers</p>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              {error?.message || "Unable to load speaker information at this time."}
+            </p>
+            <p className="text-muted-foreground text-xs mt-2">
+              Please check back later or contact us for more information.
+            </p>
           </motion.div>
-        ) : speakerImages.length === 0 ? (
+        ) : isLoading ? (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center py-16"
           >
-            <p className="text-muted-foreground text-xl">
-              Speaker details coming soon. Check back later for our confirmed speakers!
+            <div className="inline-block">
+              <div className="w-8 h-8 border-4 border-tedx-red/30 border-t-tedx-red rounded-full animate-spin"></div>
+            </div>
+            <p className="text-muted-foreground text-xl mt-4 animate-pulse">Loading speakers...</p>
+          </motion.div>
+        ) : speakers.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center py-20"
+          >
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="mb-6"
+            >
+              <div className="text-6xl mb-4">🎤</div>
+            </motion.div>
+            <p className="text-muted-foreground text-xl font-medium">
+              Speaker details coming soon!
+            </p>
+            <p className="text-muted-foreground text-sm mt-2">
+              Check back later for our confirmed speakers
             </p>
           </motion.div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* 3D Ring Section */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="flex items-center justify-center min-h-[500px]"
-            >
-              <div className="w-full h-full flex items-center justify-center">
-                <ThreeDImageRing
-                  images={speakerImages}
-                  width={300}
-                  perspective={2000}
-                  imageDistance={500}
-                  initialRotation={180}
-                  animationDuration={1.5}
-                  staggerDelay={0.1}
-                  hoverOpacity={0.4}
-                  backgroundColor="transparent"
-                  draggable={true}
-                  mobileBreakpoint={768}
-                  mobileScaleFactor={0.7}
-                  containerClassName="w-full max-w-md mx-auto"
-                />
-              </div>
-            </motion.div>
-
-            {/* Speakers List Section */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-4"
-            >
-              {speakers.map((speaker, index) => (
-                <motion.div
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="w-full"
+          >
+            <Carousel
+              items={speakers.map((speaker, index) => (
+                <SpeakerCard
                   key={speaker.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="border border-tedx-red/30 rounded-lg p-4 hover:border-tedx-red/60 transition-colors bg-card/50 backdrop-blur-sm group"
-                >
-                  <div className="flex items-center gap-4">
-                    {speaker.image && (
-                      <img
-                        src={speaker.image}
-                        alt={speaker.name}
-                        className="w-16 h-16 rounded-full object-cover flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-heading font-bold text-lg text-foreground group-hover:text-tedx-red transition-colors">
-                        {speaker.name}
-                      </h3>
-                      <p className="text-sm text-tedx-red">{speaker.role}</p>
-                    </div>
-                  </div>
-                </motion.div>
+                  speaker={{
+                    id: speaker.id,
+                    name: speaker.name,
+                    role: speaker.role,
+                    image: speaker.image || "",
+                    bio: speaker.bio || "",
+                  } as iSpeaker}
+                  index={index}
+                />
               ))}
-            </motion.div>
-          </div>
+            />
+          </motion.div>
         )}
       </div>
     </section>
