@@ -6,20 +6,24 @@ interface LoadingScreenProps {
 }
 
 const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
+  const [curtainDone, setCurtainDone] = useState(false);
   const [phase, setPhase] = useState(0);
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
+    // Curtain slides away first, then loading phases begin
+    const curtainTimer = setTimeout(() => setCurtainDone(true), 4200);
     const timers = [
-      setTimeout(() => setPhase(1), 600),
-      setTimeout(() => setPhase(2), 1800),
-      setTimeout(() => setPhase(3), 2800),
-      setTimeout(() => setPhase(4), 3800),
-      setTimeout(() => setPhase(5), 4800),
+      curtainTimer,
+      setTimeout(() => setPhase(1), 4400),
+      setTimeout(() => setPhase(2), 5600),
+      setTimeout(() => setPhase(3), 6600),
+      setTimeout(() => setPhase(4), 7600),
+      setTimeout(() => setPhase(5), 8600),
       setTimeout(() => {
         setVisible(false);
         setTimeout(() => onComplete(), 800);
-      }, 6200),
+      }, 10000),
     ];
     return () => timers.forEach(clearTimeout);
   }, [onComplete]);
@@ -32,6 +36,162 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           exit={{ opacity: 0, scale: 1.1 }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
         >
+          {/* ── Red Theater Curtain — parts left & right like real cloth ── */}
+          <motion.div
+            className="absolute inset-0 z-[100] pointer-events-none overflow-hidden"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: curtainDone ? 0 : 1 }}
+            transition={{ duration: 0.5, delay: curtainDone ? 0.3 : 0 }}
+          >
+            {/* ── LEFT CURTAIN HALF ── */}
+            <motion.div
+              className="absolute top-0 bottom-0 left-0 w-[52%]"
+              initial={{ x: "0%" }}
+              animate={{ x: "-100%" }}
+              transition={{ duration: 3, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {/* Base red fabric */}
+              <div className="absolute inset-0" style={{
+                background: `
+                  linear-gradient(180deg,
+                    #1a0000 0%,
+                    #7B0000 4%,
+                    #B22222 10%,
+                    #CC0000 20%,
+                    #DC143C 45%,
+                    #CC0000 65%,
+                    #B22222 80%,
+                    #8B0000 92%,
+                    #4a0000 100%
+                  )
+                `,
+              }} />
+
+              {/* Vertical folds — cloth pleats */}
+              <div className="absolute inset-0" style={{
+                background: `
+                  repeating-linear-gradient(90deg,
+                    rgba(0,0,0,0.18) 0px,
+                    rgba(0,0,0,0.06) 12px,
+                    rgba(255,220,220,0.08) 24px,
+                    rgba(255,255,255,0.14) 36px,
+                    rgba(255,220,220,0.08) 48px,
+                    rgba(0,0,0,0.06) 60px,
+                    rgba(0,0,0,0.18) 72px
+                  )
+                `,
+              }} />
+
+              {/* Top drape — curved valance */}
+              <div className="absolute top-0 left-0 right-0 h-[14%]" style={{
+                background: `
+                  radial-gradient(ellipse 40% 100% at 20% 0%, #1a0000 0%, transparent 80%),
+                  radial-gradient(ellipse 40% 100% at 55% 0%, #1a0000 0%, transparent 80%),
+                  radial-gradient(ellipse 40% 100% at 85% 0%, #1a0000 0%, transparent 80%),
+                  radial-gradient(ellipse 60% 90% at 35% 100%, rgba(204,0,0,0.6) 0%, transparent 70%),
+                  radial-gradient(ellipse 60% 90% at 70% 100%, rgba(204,0,0,0.6) 0%, transparent 70%)
+                `,
+              }} />
+
+              {/* Right edge — draped fold shadow where curtains meet */}
+              <div className="absolute top-0 bottom-0 right-0 w-[15%]" style={{
+                background: `linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.5) 100%)`,
+              }} />
+
+              {/* Fabric sheen */}
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  background: `radial-gradient(ellipse 70% 50% at 40% 35%, rgba(255,120,120,0.12) 0%, transparent 70%)`,
+                }}
+                animate={{ opacity: [0.4, 0.7, 0.4] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              />
+
+              {/* Bottom shadow */}
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
+            </motion.div>
+
+            {/* ── RIGHT CURTAIN HALF ── */}
+            <motion.div
+              className="absolute top-0 bottom-0 right-0 w-[52%]"
+              initial={{ x: "0%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 3, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {/* Base red fabric */}
+              <div className="absolute inset-0" style={{
+                background: `
+                  linear-gradient(180deg,
+                    #1a0000 0%,
+                    #7B0000 4%,
+                    #B22222 10%,
+                    #CC0000 20%,
+                    #DC143C 45%,
+                    #CC0000 65%,
+                    #B22222 80%,
+                    #8B0000 92%,
+                    #4a0000 100%
+                  )
+                `,
+              }} />
+
+              {/* Vertical folds — cloth pleats */}
+              <div className="absolute inset-0" style={{
+                background: `
+                  repeating-linear-gradient(90deg,
+                    rgba(0,0,0,0.18) 0px,
+                    rgba(0,0,0,0.06) 12px,
+                    rgba(255,220,220,0.08) 24px,
+                    rgba(255,255,255,0.14) 36px,
+                    rgba(255,220,220,0.08) 48px,
+                    rgba(0,0,0,0.06) 60px,
+                    rgba(0,0,0,0.18) 72px
+                  )
+                `,
+              }} />
+
+              {/* Top drape — curved valance */}
+              <div className="absolute top-0 left-0 right-0 h-[14%]" style={{
+                background: `
+                  radial-gradient(ellipse 40% 100% at 15% 0%, #1a0000 0%, transparent 80%),
+                  radial-gradient(ellipse 40% 100% at 45% 0%, #1a0000 0%, transparent 80%),
+                  radial-gradient(ellipse 40% 100% at 80% 0%, #1a0000 0%, transparent 80%),
+                  radial-gradient(ellipse 60% 90% at 30% 100%, rgba(204,0,0,0.6) 0%, transparent 70%),
+                  radial-gradient(ellipse 60% 90% at 65% 100%, rgba(204,0,0,0.6) 0%, transparent 70%)
+                `,
+              }} />
+
+              {/* Left edge — draped fold shadow where curtains meet */}
+              <div className="absolute top-0 bottom-0 left-0 w-[15%]" style={{
+                background: `linear-gradient(270deg, transparent 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.5) 100%)`,
+              }} />
+
+              {/* Fabric sheen */}
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  background: `radial-gradient(ellipse 70% 50% at 60% 35%, rgba(255,120,120,0.12) 0%, transparent 70%)`,
+                }}
+                animate={{ opacity: [0.4, 0.7, 0.4] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              />
+
+              {/* Bottom shadow */}
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
+            </motion.div>
+
+            {/* ── Center seam line where curtains meet ── */}
+            <motion.div
+              className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[3px]"
+              style={{
+                background: `linear-gradient(180deg, #1a0000, rgba(0,0,0,0.6), #1a0000)`,
+              }}
+              initial={{ opacity: 0.8 }}
+              animate={{ opacity: 0, scaleX: 0 }}
+              transition={{ duration: 1.5, delay: 1.2, ease: "easeOut" }}
+            />
+          </motion.div>
           {/* Animated background particles */}
           {Array.from({ length: 20 }).map((_, i) => (
             <motion.div
