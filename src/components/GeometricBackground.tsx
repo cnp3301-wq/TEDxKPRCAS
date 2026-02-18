@@ -41,8 +41,8 @@ const GeometricBackground = () => {
         x: Math.random() * width,
         y: Math.random() * height,
         size: mobile
-          ? 18 + depth * 30 + Math.random() * 15
-          : 25 + depth * 60 + Math.random() * 30,
+          ? 15 + depth * 30 + Math.random() * 15
+          : 20 + depth * 60 + Math.random() * 30,
         rotationSpeed: (0.2 + Math.random() * 0.5) * (Math.random() > 0.5 ? 1 : -1),
         rotation: Math.random() * Math.PI * 2,
         glowIntensity: 0.3 + Math.random() * 0.7,
