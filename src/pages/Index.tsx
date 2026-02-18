@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import CursorParticles from "@/components/CursorParticles";
 import ScrollReveal from "@/components/ScrollReveal";
 import GallerySection from "@/components/GallerySection";
+import ZoomParallaxIntro from "@/components/ZoomParallaxIntro";
 
 const Index = () => {
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,7 @@ const Index = () => {
 
   return (
     <div className="bg-background min-h-screen relative">
+      <ZoomParallaxIntro />
       <GeometricBackground />
       <CursorParticles />
       <Navbar />
