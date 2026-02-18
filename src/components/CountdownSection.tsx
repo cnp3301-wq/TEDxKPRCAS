@@ -129,7 +129,7 @@ const CountdownSection = () => {
           whileHover={{ boxShadow: "0 0 40px hsl(0 84% 50% / 0.2)" }}
           className="border border-tedx-red rounded-xl p-4 sm:p-8 md:p-12 inline-block bg-card/30 backdrop-blur-sm transition-shadow"
         >
-          <div className="flex items-center gap-2 sm:gap-4 md:gap-8 font-heading text-3xl sm:text-5xl md:text-8xl font-black">
+          <div className="flex items-center gap-1 sm:gap-4 md:gap-8 font-heading text-2xl sm:text-5xl md:text-8xl font-black">
             {[
               { val: time.days, label: "Days" },
               { val: time.hours, label: "Hours" },
@@ -137,7 +137,7 @@ const CountdownSection = () => {
               { val: time.seconds, label: "Sec" },
             ].map((item, i) => (
               <div key={item.label} className="flex items-center gap-2 sm:gap-4 md:gap-8">
-                {i > 0 && <span className="text-tedx-red text-xl sm:text-4xl md:text-7xl">:</span>}
+                {i > 0 && <span className="text-tedx-red text-base sm:text-4xl md:text-7xl">:</span>}
                 <motion.div
                   className="flex flex-col items-center"
                   whileHover={{ scale: 1.1 }}

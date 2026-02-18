@@ -289,7 +289,7 @@ const SpeakerCard = ({
       >
         <div
           className={cn(
-            "rounded-3xl bg-transparent backdrop-blur-sm h-[500px] md:h-[550px] w-80 md:w-96 overflow-hidden flex flex-col items-center justify-center relative z-10 shadow-xl border border-tedx-red/30 hover:border-tedx-red/60 transition-colors",
+            "rounded-3xl bg-transparent backdrop-blur-sm h-[500px] md:h-[550px] w-[85vw] sm:w-80 md:w-96 overflow-hidden flex flex-col items-center justify-center relative z-10 shadow-xl border border-tedx-red/30 hover:border-tedx-red/60 transition-colors",
             index % 2 === 0 ? "rotate-0" : "-rotate-0"
           )}
         >
