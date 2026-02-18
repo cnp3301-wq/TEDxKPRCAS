@@ -11,6 +11,7 @@ import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import CursorParticles from "@/components/CursorParticles";
 import ScrollReveal from "@/components/ScrollReveal";
+import GallerySection from "@/components/GallerySection";
 
 const Index = () => {
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,9 @@ const Index = () => {
       </ScrollReveal>
       <ScrollReveal direction="left" delay={0.1}>
         <SpeakersSection />
+      </ScrollReveal>
+      <ScrollReveal direction="up" delay={0.1}>
+        <GallerySection />
       </ScrollReveal>
       <ScrollReveal direction="right" delay={0.1}>
         <ContactSection />
