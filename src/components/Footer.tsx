@@ -17,7 +17,7 @@ const Footer = () => {
           <span className="font-heading font-bold text-foreground ml-1">KPRCAS</span>
         </motion.div>
         <p className="text-muted-foreground text-sm">
-          This independent TEDx event is operated under license from TED.
+          This independent TED<sup>x</sup> event is operated under license from TED.
         </p>
       </div>
     </footer>

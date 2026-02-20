@@ -27,7 +27,7 @@ const Team = () => {
               Our <span className="text-tedx-red">Team</span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Meet the passionate individuals behind TEDx KPRCAS
+              Meet the passionate individuals behind TED<sup>x</sup> KPRCAS
             </p>
           </motion.div>
 
@@ -81,7 +81,7 @@ const Team = () => {
                   subtitle: member.role,
                 } as TimelineEvent))}
                 title="Our Team"
-                subtitle="Meet the passionate individuals behind TEDx KPRCAS"
+                subtitle="Meet the passionate individuals behind TEDˣ KPRCAS"
                 cardAlignment="alternating"
                 cardEffect="glow"
                 revealAnimation="scale"

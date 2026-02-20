@@ -42,12 +42,8 @@ const ForegroundSilhouette = memo(() => (
   </svg>
 ));
 
-/* ════════════════════════════════════════════════════════════
-   HERO – uses a single native rAF scroll listener.
-   All transforms use translate3d / scale3d → compositor-only,
-   zero layout / paint cost per frame.
-   ════════════════════════════════════════════════════════════ */
-const HeroSection = () => {
+
+function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
@@ -146,18 +142,6 @@ const HeroSection = () => {
         className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4"
         style={{ willChange: "transform, opacity", transform: "translate3d(0,0,0)" }}
       >
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="border border-tedx-red/30 rounded-full px-5 py-1.5 mb-6"
-        >
-          <span className="text-tedx-red text-xs sm:text-sm tracking-widest uppercase">
-            x = Independently organised TED event
-          </span>
-        </motion.div>
-
         {/* TEDx KPRCAS */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -172,15 +156,24 @@ const HeroSection = () => {
             x
           </sup>
         </motion.div>
-
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
-          className="font-heading text-3xl sm:text-5xl md:text-7xl font-black text-white tracking-[0.15em] mb-8"
+          className="font-heading text-3xl sm:text-5xl md:text-7xl font-black text-white tracking-[0.15em] mb-2"
         >
           KPRCAS
         </motion.h1>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="border border-tedx-red/30 rounded-full px-5 py-1.5 mb-6"
+        >
+          <span className="text-tedx-red text-xs sm:text-sm tracking-widest uppercase">
+            x = Independently organised TED event
+          </span>
+        </motion.div>
       </div>
 
       {/* ═══ LAYER 5 – Foreground / ground plane ═══ */}
@@ -196,6 +189,6 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-[15]" />
     </section>
   );
-};
+}
 
 export default HeroSection;

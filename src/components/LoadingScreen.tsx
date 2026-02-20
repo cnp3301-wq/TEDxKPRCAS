@@ -143,7 +143,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           <div className="flex flex-col items-center justify-center relative z-10">
             {/* Phase 1: TEDx outline - single clean render */}
             {phase >= 1 && phase < 2 && (
-              <motion.div className="flex items-baseline">
+              <motion.div className="flex items-start">
                 {"TED".split("").map((char, i) => (
                   <motion.span
                     key={`outline-${i}`}
@@ -160,7 +160,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                   </motion.span>
                 ))}
                 <motion.span
-                  className="font-heading text-3xl sm:text-5xl md:text-[7rem] lg:text-[10rem] font-black"
+                  className="font-heading text-2xl sm:text-4xl md:text-[5rem] lg:text-[7rem] font-black"
                   style={{
                     WebkitTextStroke: "2px hsl(var(--tedx-red))",
                     color: "transparent",
@@ -179,10 +179,10 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-baseline relative"
+                className="flex items-start relative"
               >
                 <motion.div
-                  className="flex items-baseline"
+                  className="flex items-start"
                   animate={phase === 2 ? {
                     x: [0, -3, 4, -2, 0],
                     skewX: [0, -2, 1, -1, 0],
@@ -202,7 +202,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                     </motion.span>
                   ))}
                   <motion.span
-                    className="font-heading text-3xl sm:text-5xl md:text-[7rem] lg:text-[10rem] font-black text-tedx-red"
+                    className="font-heading text-2xl sm:text-4xl md:text-[5rem] lg:text-[7rem] font-black text-tedx-red"
                     initial={{ color: "transparent" }}
                     animate={{ color: "hsl(var(--tedx-red))" }}
                     transition={{ duration: 0.3, delay: 0.3 }}

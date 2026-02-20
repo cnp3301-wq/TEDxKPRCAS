@@ -114,7 +114,7 @@ const Gallery = () => {
               <span className="text-tedx-red">Gallery</span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Explore memorable moments from TEDx KPRCAS events
+              Explore memorable moments from TED<sup>x</sup> KPRCAS events
             </p>
           </motion.div>
         </div>
