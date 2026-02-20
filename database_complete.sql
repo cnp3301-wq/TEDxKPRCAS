@@ -182,6 +182,38 @@ CREATE POLICY "team_members_delete" ON team_members FOR DELETE USING (true);
 ALTER PUBLICATION supabase_realtime ADD TABLE team_members;
 
 
+-- ==================== SPONSORS TABLE ====================
+-- Stores sponsor information (name and logo)
+DROP TABLE IF EXISTS sponsors CASCADE;
+
+CREATE TABLE sponsors (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  logo TEXT NOT NULL DEFAULT '',
+  "order" INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_sponsors_order ON sponsors("order");
+CREATE INDEX IF NOT EXISTS idx_sponsors_is_active ON sponsors(is_active);
+CREATE INDEX IF NOT EXISTS idx_sponsors_created_at ON sponsors(created_at);
+
+-- RLS
+ALTER TABLE sponsors ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "sponsors_select" ON sponsors FOR SELECT USING (true);
+CREATE POLICY "sponsors_insert" ON sponsors FOR INSERT WITH CHECK (true);
+CREATE POLICY "sponsors_update" ON sponsors FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "sponsors_delete" ON sponsors FOR DELETE USING (true);
+
+-- Enable realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE sponsors;
+
+
 -- ============================================================================
 -- STEP 3: CREATE INDEXES FOR PERFORMANCE
 -- ============================================================================
@@ -259,6 +291,7 @@ ALTER TABLE contact_info ENABLE ROW LEVEL SECURITY;
 ALTER TABLE about_info ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sponsors ENABLE ROW LEVEL SECURITY;
 
 
 -- ============================================================================
@@ -309,7 +342,7 @@ CREATE POLICY "events_delete" ON events FOR DELETE USING (true);
 -- DONE! DATABASE SETUP COMPLETE
 -- ============================================================================
 --
--- Tables created: 8
+-- Tables created: 9
 --   - participants (event registrations)
 --   - speakers (speaker information)
 --   - certificates (certificate templates)
@@ -318,6 +351,7 @@ CREATE POLICY "events_delete" ON events FOR DELETE USING (true);
 --   - events (event information)
 --   - gallery (event photos)
 --   - team_members (team member profiles)
+--   - sponsors (sponsor name and logo)
 --
 -- All tables have:
 --   ✅ Primary key (UUID)

@@ -46,6 +46,10 @@ import {
   useCreateTeamMember,
   useUpdateTeamMember,
   useDeleteTeamMember,
+  useSponsors,
+  useCreateSponsor,
+  useUpdateSponsor,
+  useDeleteSponsor,
 } from "@/hooks/use-database";
 
 // Type definitions
@@ -62,7 +66,7 @@ type Participant = {
 
 
 const AdminPage = () => {
-  const [tab, setTab] = useState<"participants" | "speakers" | "certificates" | "about" | "contact" | "gallery" | "team">("participants");
+  const [tab, setTab] = useState<"participants" | "speakers" | "certificates" | "about" | "contact" | "gallery" | "team" | "sponsors">("participants");
 
   // Toast/Notification state
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -103,6 +107,12 @@ const AdminPage = () => {
   const { mutate: createTeamMember } = useCreateTeamMember();
   const { mutate: updateTeamMember } = useUpdateTeamMember();
   const { mutate: deleteTeamMember } = useDeleteTeamMember();
+
+  // Database hooks for sponsors
+  const { data: sponsors = [], isLoading: sponsorsLoading } = useSponsors();
+  const { mutate: createSponsor } = useCreateSponsor();
+  const { mutate: updateSponsor } = useUpdateSponsor();
+  const { mutate: deleteSponsor } = useDeleteSponsor();
 
   // Certificate management state
   const [showCertificateDesigner, setShowCertificateDesigner] = useState(false);
@@ -170,6 +180,11 @@ const AdminPage = () => {
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [editingTeamMember, setEditingTeamMember] = useState<any>(null);
   const [teamFormData, setTeamFormData] = useState({ name: "", role: "", photo: "", description: "" });
+
+  // Sponsors UI state
+  const [showSponsorForm, setShowSponsorForm] = useState(false);
+  const [editingSponsor, setEditingSponsor] = useState<any>(null);
+  const [sponsorFormData, setSponsorFormData] = useState({ name: "", logo: "" });
 
   // Certificate & Import state
   const [showCertificatePreview, setShowCertificatePreview] = useState(false);
@@ -511,6 +526,78 @@ const AdminPage = () => {
     reader.readAsDataURL(file);
   };
 
+  // Sponsor functions
+  const addSponsorItem = () => {
+    setEditingSponsor(null);
+    setSponsorFormData({ name: "", logo: "" });
+    setShowSponsorForm(true);
+  };
+
+  const editSponsorItem = (sponsor: any) => {
+    setEditingSponsor(sponsor);
+    setSponsorFormData({ name: sponsor.name, logo: sponsor.logo || "" });
+    setShowSponsorForm(true);
+  };
+
+  const saveSponsorItem = () => {
+    if (!sponsorFormData.name || !sponsorFormData.logo) {
+      showNotification("error", "Please fill in name and logo");
+      return;
+    }
+
+    if (editingSponsor && editingSponsor.id) {
+      updateSponsor(
+        {
+          id: editingSponsor.id,
+          data: {
+            name: sponsorFormData.name,
+            logo: sponsorFormData.logo,
+          },
+        },
+        {
+          onSuccess: () => {
+            showNotification("success", "Sponsor updated!");
+            setShowSponsorForm(false);
+          },
+          onError: (error) => showNotification("error", `Failed: ${error.message}`),
+        }
+      );
+    } else {
+      createSponsor(
+        {
+          name: sponsorFormData.name,
+          logo: sponsorFormData.logo,
+          order: sponsors.length,
+          is_active: true,
+        },
+        {
+          onSuccess: () => {
+            showNotification("success", "Sponsor added!");
+            setShowSponsorForm(false);
+          },
+          onError: (error) => showNotification("error", `Failed: ${error.message}`),
+        }
+      );
+    }
+  };
+
+  const handleDeleteSponsorItem = (id: string) => {
+    deleteSponsor(id, {
+      onSuccess: () => showNotification("success", "Sponsor deleted!"),
+      onError: (error) => showNotification("error", `Failed: ${error.message}`),
+    });
+  };
+
+  const handleSponsorLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSponsorFormData((prev) => ({ ...prev, logo: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const hasActiveFilters = searchQuery || dateFrom || dateTo;
 
   return (
@@ -593,6 +680,7 @@ const AdminPage = () => {
             { id: "contact", label: "Contact", icon: Phone },
             { id: "gallery", label: "Gallery", icon: Image },
             { id: "team", label: "Team", icon: UserPlus },
+            { id: "sponsors", label: "Sponsors", icon: Image },
           ].map((item) => {
             const Icon = item.icon;
             return (
@@ -1746,6 +1834,154 @@ const AdminPage = () => {
                             </button>
                             <button
                               onClick={() => handleDeleteTeamMember(member.id)}
+                              className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-600 text-xs font-medium py-1.5 rounded-lg flex items-center justify-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* ==================== SPONSORS TAB ==================== */}
+          {tab === "sponsors" && (
+            <motion.div key="sponsors" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <motion.div className="border border-border rounded-2xl p-8 bg-card/60 backdrop-blur-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="font-heading text-2xl font-bold">Sponsors Management</h2>
+                  <button
+                    onClick={addSponsorItem}
+                    className="bg-primary/20 hover:bg-primary/30 text-primary font-medium px-4 py-2 rounded-lg flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Sponsor
+                  </button>
+                </div>
+
+                {/* Sponsor Form Dialog */}
+                <Dialog open={showSponsorForm} onOpenChange={setShowSponsorForm}>
+                  <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>{editingSponsor ? "Edit Sponsor" : "Add Sponsor"}</DialogTitle>
+                      <DialogDescription>Add sponsor details including name and logo</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      {/* Logo Upload */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Logo</label>
+                        {sponsorFormData.logo ? (
+                          <div className="relative">
+                            <img
+                              src={sponsorFormData.logo}
+                              alt="Preview"
+                              className="w-full h-32 object-contain rounded-lg border border-border bg-white p-2"
+                            />
+                            <button
+                              onClick={() => setSponsorFormData((prev) => ({ ...prev, logo: "" }))}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-8 hover:border-primary/50 transition-colors">
+                            <Upload className="w-8 h-8 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Click to upload logo</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleSponsorLogoUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">Or paste a logo URL:</p>
+                        <input
+                          type="url"
+                          value={sponsorFormData.logo}
+                          onChange={(e) => setSponsorFormData((prev) => ({ ...prev, logo: e.target.value }))}
+                          placeholder="https://example.com/logo.png"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2 mt-1 text-sm"
+                        />
+                      </div>
+                      {/* Name */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Sponsor Name *</label>
+                        <input
+                          type="text"
+                          value={sponsorFormData.name}
+                          onChange={(e) => setSponsorFormData((prev) => ({ ...prev, name: e.target.value }))}
+                          placeholder="Enter sponsor name"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                        />
+                      </div>
+                      {/* Actions */}
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          onClick={saveSponsorItem}
+                          className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-600 font-medium py-2.5 rounded-lg"
+                        >
+                          {editingSponsor ? "Update" : "Add"}
+                        </button>
+                        <button
+                          onClick={() => setShowSponsorForm(false)}
+                          className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2.5 rounded-lg"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Sponsors List */}
+                {sponsorsLoading ? (
+                  <div className="text-center py-12">
+                    <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading sponsors...</p>
+                  </div>
+                ) : sponsors.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Image className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No sponsors yet. Add your first one!</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {sponsors.map((sponsor: any) => (
+                      <motion.div
+                        key={sponsor.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="border border-border rounded-xl overflow-hidden bg-card hover:border-primary/30 transition-colors group"
+                      >
+                        {sponsor.logo && (
+                          <div className="relative h-32 overflow-hidden bg-white flex items-center justify-center p-4">
+                            <img
+                              src={sponsor.logo}
+                              alt={sponsor.name}
+                              className="max-h-full max-w-full object-contain"
+                            />
+                          </div>
+                        )}
+                        <div className="p-4">
+                          <h3 className="font-bold text-sm truncate">{sponsor.name}</h3>
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => editSponsorItem(sponsor)}
+                              className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 text-xs font-medium py-1.5 rounded-lg flex items-center justify-center gap-1"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSponsorItem(sponsor.id)}
                               className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-600 text-xs font-medium py-1.5 rounded-lg flex items-center justify-center gap-1"
                             >
                               <Trash2 className="w-3 h-3" />

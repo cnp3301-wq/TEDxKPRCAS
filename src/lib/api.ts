@@ -8,6 +8,7 @@ import {
   Event,
   GalleryImage,
   TeamMember,
+  Sponsor,
 } from "./supabase";
 
 // ==================== PARTICIPANTS ====================
@@ -495,6 +496,64 @@ export const teamService = {
   async delete(id: string) {
     const { error } = await supabase
       .from("team_members")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+  },
+};
+
+// ==================== SPONSORS ====================
+
+export const sponsorService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from("sponsors")
+      .select("*")
+      .eq("is_active", true)
+      .order("order", { ascending: true });
+
+    if (error) throw error;
+    return data as Sponsor[];
+  },
+
+  async getById(id: string) {
+    const { data, error } = await supabase
+      .from("sponsors")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    return data as Sponsor;
+  },
+
+  async create(sponsor: Omit<Sponsor, "id" | "created_at" | "updated_at">) {
+    const { data, error } = await supabase
+      .from("sponsors")
+      .insert([sponsor])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Sponsor;
+  },
+
+  async update(id: string, sponsor: Partial<Sponsor>) {
+    const { data, error } = await supabase
+      .from("sponsors")
+      .update(sponsor)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Sponsor;
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase
+      .from("sponsors")
       .delete()
       .eq("id", id);
 

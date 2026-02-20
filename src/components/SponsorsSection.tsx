@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
+import { useSponsors } from "@/hooks/use-database";
 
-/* ── Placeholder sponsor logos ── */
-const sponsors = [
+/* ── Fallback sponsor logos (used when no DB data) ── */
+const fallbackSponsors = [
   { name: "Sponsor 1", logo: "https://via.placeholder.com/200x80/1a1a1a/ef4444?text=Sponsor+1" },
   { name: "Sponsor 2", logo: "https://via.placeholder.com/200x80/1a1a1a/ffffff?text=Sponsor+2" },
   { name: "Sponsor 3", logo: "https://via.placeholder.com/200x80/1a1a1a/ef4444?text=Sponsor+3" },
@@ -12,7 +13,7 @@ const sponsors = [
   { name: "Sponsor 8", logo: "https://via.placeholder.com/200x80/1a1a1a/ffffff?text=Sponsor+8" },
 ];
 
-const SponsorCard = ({ sponsor }: { sponsor: typeof sponsors[0] }) => (
+const SponsorCard = ({ sponsor }: { sponsor: { name: string; logo: string } }) => (
   <div
     className="flex-shrink-0 flex items-center justify-center w-[140px] h-[60px] sm:w-[180px] sm:h-[70px] md:w-[200px] md:h-[80px]
                mx-3 sm:mx-5 rounded-xl border border-white/5 bg-white/[0.03] backdrop-blur-sm
@@ -28,7 +29,7 @@ const SponsorCard = ({ sponsor }: { sponsor: typeof sponsors[0] }) => (
   </div>
 );
 
-const MarqueeRow = ({ reverse = false }: { reverse?: boolean }) => {
+const MarqueeRow = ({ reverse = false, sponsors }: { reverse?: boolean; sponsors: { name: string; logo: string }[] }) => {
   // Triple the items for a seamless loop
   const items = [...sponsors, ...sponsors, ...sponsors];
 
@@ -51,6 +52,13 @@ const MarqueeRow = ({ reverse = false }: { reverse?: boolean }) => {
 };
 
 const SponsorsSection = () => {
+  const { data: dbSponsors = [] } = useSponsors();
+
+  // Use DB sponsors if available, otherwise use fallback
+  const sponsors = dbSponsors.length > 0
+    ? dbSponsors.map((s: any) => ({ name: s.name, logo: s.logo }))
+    : fallbackSponsors;
+
   return (
     <section id="sponsors" className="py-16 sm:py-24 relative overflow-hidden">
       <div className="container mx-auto px-4 relative z-10 mb-10">
@@ -71,8 +79,8 @@ const SponsorsSection = () => {
       </div>
 
       {/* Two rows scrolling in opposite directions */}
-      <MarqueeRow />
-      <MarqueeRow reverse />
+      <MarqueeRow sponsors={sponsors} />
+      <MarqueeRow reverse sponsors={sponsors} />
     </section>
   );
 };

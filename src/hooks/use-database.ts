@@ -10,6 +10,7 @@ import {
   eventService,
   galleryService,
   teamService,
+  sponsorService,
 } from "@/lib/api";
 import type {
   Participant,
@@ -20,6 +21,7 @@ import type {
   Event,
   GalleryImage,
   TeamMember,
+  Sponsor,
 } from "@/lib/supabase";
 
 // ==================== PARTICIPANTS HOOKS ====================
@@ -569,6 +571,95 @@ export function useDeleteTeamMember() {
     },
     onError: (error) => {
       console.error("❌ Failed to delete team member:", error);
+    },
+  });
+}
+
+// ==================== SPONSORS HOOKS ====================
+
+export function useSponsors() {
+  const queryClient = useQueryClient();
+  const subscriptionRef = useRef<any>(null);
+
+  const query = useQuery({
+    queryKey: ["sponsors"],
+    queryFn: () => sponsorService.getAll(),
+    staleTime: 0,
+  });
+
+  useEffect(() => {
+    if (subscriptionRef.current) return;
+
+    console.log("📡 Setting up sponsors real-time subscription...");
+    subscriptionRef.current = supabase
+      .channel("sponsors-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "sponsors",
+        },
+        (payload: any) => {
+          console.log("🔄 Sponsors updated from database:", payload);
+          queryClient.invalidateQueries({ queryKey: ["sponsors"] });
+        }
+      )
+      .subscribe((status: string) => {
+        console.log("📡 Sponsors subscription status:", status);
+      });
+
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
+    };
+  }, [queryClient]);
+
+  return query;
+}
+
+export function useCreateSponsor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Omit<Sponsor, "id" | "created_at" | "updated_at">) =>
+      sponsorService.create(data),
+    onSuccess: () => {
+      console.log("✅ Sponsor created successfully");
+      queryClient.invalidateQueries({ queryKey: ["sponsors"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to create sponsor:", error);
+    },
+  });
+}
+
+export function useUpdateSponsor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Sponsor> }) =>
+      sponsorService.update(id, data),
+    onSuccess: () => {
+      console.log("✅ Sponsor updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["sponsors"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to update sponsor:", error);
+    },
+  });
+}
+
+export function useDeleteSponsor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sponsorService.delete(id),
+    onSuccess: () => {
+      console.log("✅ Sponsor deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["sponsors"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to delete sponsor:", error);
     },
   });
 }
