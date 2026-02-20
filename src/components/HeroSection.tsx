@@ -127,14 +127,7 @@ function HeroSection() {
         <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-tedx-red/[0.06] rounded-full opacity-60" />
       </div>
 
-      {/* ═══ LAYER 3 – City silhouette ═══ */}
-      <div
-        ref={cityRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ willChange: "transform", transform: "translate3d(0,0,0)" }}
-      >
-        <CitySilhouette />
-      </div>
+      // ...existing code...
 
       {/* ═══ CENTER CONTENT – Title + Countdown ═══ */}
       <div
