@@ -147,7 +147,7 @@ const CountdownSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="border border-tedx-red rounded-xl p-6 sm:p-10 md:p-14 inline-block bg-card/50 backdrop-blur-sm"
+          className="border border-tedx-red rounded-xl p-3 sm:p-6 md:p-8 inline-block bg-card/50 backdrop-blur-sm"
         >
           {/* Mobile: smaller blocks, Desktop: larger */}
           <div className="block sm:hidden">
@@ -157,7 +157,7 @@ const CountdownSection = () => {
               minutes={time.minutes}
               seconds={time.seconds}
               color="#e82b2b"
-              size={12}
+              size={8}
             />
           </div>
           <div className="hidden sm:block md:hidden">
@@ -167,7 +167,7 @@ const CountdownSection = () => {
               minutes={time.minutes}
               seconds={time.seconds}
               color="#e82b2b"
-              size={20}
+              size={14}
             />
           </div>
           <div className="hidden md:block">
@@ -177,7 +177,7 @@ const CountdownSection = () => {
               minutes={time.minutes}
               seconds={time.seconds}
               color="#e82b2b"
-              size={28}
+              size={18}
             />
           </div>
         </motion.div>
