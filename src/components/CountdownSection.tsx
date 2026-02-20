@@ -2,20 +2,41 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
+import CountdownCounter from "./ui/counter-loader";
 
-const TARGET_DATE = new Date("2025-12-31T00:00:00");
+const DEFAULT_TARGET = new Date("2025-12-31T00:00:00");
 
 const CountdownSection = () => {
   const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [registrationLink, setRegistrationLink] = useState("https://forms.gle/example");
+  const [targetDate, setTargetDate] = useState<Date>(DEFAULT_TARGET);
 
   const mobile =
     typeof window !== "undefined" &&
     (window.innerWidth < 768 || "ontouchstart" in window);
 
+  // Load countdown date from localStorage (set by admin)
+  useEffect(() => {
+    const saved = localStorage.getItem("tedx_event_countdown");
+    if (saved) {
+      const parsed = new Date(saved);
+      if (!isNaN(parsed.getTime())) setTargetDate(parsed);
+    }
+
+    // Listen for changes from admin (same tab)
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "tedx_event_countdown" && e.newValue) {
+        const d = new Date(e.newValue);
+        if (!isNaN(d.getTime())) setTargetDate(d);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   useEffect(() => {
     const update = () => {
-      const diff = Math.max(0, TARGET_DATE.getTime() - Date.now());
+      const diff = Math.max(0, targetDate.getTime() - Date.now());
       setTime({
         days: Math.floor(diff / 86400000),
         hours: Math.floor((diff % 86400000) / 3600000),
@@ -26,7 +47,7 @@ const CountdownSection = () => {
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [targetDate]);
 
   useEffect(() => {
     const savedContact = localStorage.getItem("tedx_contact");
@@ -109,11 +130,11 @@ const CountdownSection = () => {
               <div className="flex items-center gap-3 md:gap-4">
                 <div className="text-center">
                   <span className="font-heading text-4xl sm:text-6xl md:text-8xl font-black text-tedx-red leading-none block">23</span>
-                  <span className="font-heading text-2xl sm:text-4xl md:text-6xl font-black text-tedx-red leading-none block -mt-1">MAR</span>
+                  <span className="font-heading text-2xl sm:text-4xl md:text-6xl font-black text-tedx-red leading-none block -mt-1">APR</span>
                 </div>
                 <div className="w-[3px] h-16 sm:h-20 md:h-28 bg-white/30 rounded-full" />
                 <div className="font-heading text-3xl sm:text-5xl md:text-7xl font-black text-white leading-none" style={{ writingMode: "vertical-lr" }}>
-                  2025
+                  2026
                 </div>
               </div>
             </motion.div>
@@ -126,31 +147,38 @@ const CountdownSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="border border-tedx-red rounded-xl p-4 sm:p-8 md:p-12 inline-block bg-card/50"
+          className="border border-tedx-red rounded-xl p-6 sm:p-10 md:p-14 inline-block bg-card/50 backdrop-blur-sm"
         >
-          <div className="flex items-center gap-1 sm:gap-4 md:gap-8 font-heading text-2xl sm:text-5xl md:text-8xl font-black">
-            {[
-              { val: time.days, label: "Days" },
-              { val: time.hours, label: "Hours" },
-              { val: time.minutes, label: "Min" },
-              { val: time.seconds, label: "Sec" },
-            ].map((item, i) => (
-              <div key={item.label} className="flex items-center gap-2 sm:gap-4 md:gap-8">
-                {i > 0 && <span className="text-tedx-red text-base sm:text-4xl md:text-7xl">:</span>}
-                <motion.div
-                  className="flex flex-col items-center"
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <span className="text-foreground">
-                    {pad(item.val)}
-                  </span>
-                  <span className="text-sm md:text-base font-body font-normal text-muted-foreground mt-2">
-                    {item.label}
-                  </span>
-                </motion.div>
-              </div>
-            ))}
+          {/* Mobile: smaller blocks, Desktop: larger */}
+          <div className="block sm:hidden">
+            <CountdownCounter
+              days={time.days}
+              hours={time.hours}
+              minutes={time.minutes}
+              seconds={time.seconds}
+              color="#e82b2b"
+              size={12}
+            />
+          </div>
+          <div className="hidden sm:block md:hidden">
+            <CountdownCounter
+              days={time.days}
+              hours={time.hours}
+              minutes={time.minutes}
+              seconds={time.seconds}
+              color="#e82b2b"
+              size={20}
+            />
+          </div>
+          <div className="hidden md:block">
+            <CountdownCounter
+              days={time.days}
+              hours={time.hours}
+              minutes={time.minutes}
+              seconds={time.seconds}
+              color="#e82b2b"
+              size={28}
+            />
           </div>
         </motion.div>
 

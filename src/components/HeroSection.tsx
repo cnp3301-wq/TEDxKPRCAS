@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { useState, useEffect, useRef, memo } from "react";
+import { useEffect, useRef, memo } from "react";
 
 /* ── Inline SVG city-scape silhouette (Layer 3) ── */
 const CitySilhouette = memo(() => (
@@ -43,63 +42,12 @@ const ForegroundSilhouette = memo(() => (
   </svg>
 ));
 
-/* ── Countdown (isolated – never re-renders the hero) ── */
-const TARGET_DATE = new Date("2025-12-31T00:00:00");
-const pad = (n: number) => String(n).padStart(2, "0");
-
-const CountdownTimer = memo(() => {
-  const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  useEffect(() => {
-    const update = () => {
-      const diff = Math.max(0, TARGET_DATE.getTime() - Date.now());
-      setTime({
-        days: Math.floor(diff / 86400000),
-        hours: Math.floor((diff % 86400000) / 3600000),
-        minutes: Math.floor((diff % 3600000) / 60000),
-        seconds: Math.floor((diff % 60000) / 1000),
-      });
-    };
-    update();
-    const id = setInterval(update, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  return (
-    <div className="flex items-center gap-3 sm:gap-6 md:gap-8 mb-8">
-      {[
-        { val: time.days, label: "DAYS" },
-        { val: time.hours, label: "HOURS" },
-        { val: time.minutes, label: "MINUTES" },
-        { val: time.seconds, label: "SECONDS" },
-      ].map((item, i) => (
-        <div key={item.label} className="flex items-center gap-3 sm:gap-6 md:gap-8">
-          {i > 0 && (
-            <span className="text-tedx-red/60 font-heading text-2xl sm:text-4xl md:text-5xl font-light select-none">
-              :
-            </span>
-          )}
-          <div className="flex flex-col items-center">
-            <span className="font-heading text-3xl sm:text-5xl md:text-7xl font-black text-white tabular-nums leading-none">
-              {pad(item.val)}
-            </span>
-            <span className="text-[10px] sm:text-xs text-white/40 tracking-[0.2em] mt-1 font-body">
-              {item.label}
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-});
-
 /* ════════════════════════════════════════════════════════════
-   HERO – uses a single native rAF scroll listener instead of
-   6 × Framer-Motion useTransform subscriptions.
+   HERO – uses a single native rAF scroll listener.
    All transforms use translate3d / scale3d → compositor-only,
    zero layout / paint cost per frame.
    ════════════════════════════════════════════════════════════ */
 const HeroSection = () => {
-  const [registrationLink, setRegistrationLink] = useState("https://forms.gle/example");
   const sectionRef = useRef<HTMLElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
@@ -157,18 +105,6 @@ const HeroSection = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll(); // initial position
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    const savedContact = localStorage.getItem("tedx_contact");
-    if (savedContact) {
-      try {
-        const contactData = JSON.parse(savedContact);
-        setRegistrationLink(contactData.registrationLink || "https://forms.gle/example");
-      } catch (e) {
-        console.error("Error parsing contact data:", e);
-      }
-    }
   }, []);
 
   return (
@@ -245,31 +181,6 @@ const HeroSection = () => {
         >
           KPRCAS
         </motion.h1>
-
-        {/* Countdown Timer (isolated component) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.6 }}
-        >
-          <CountdownTimer />
-        </motion.div>
-
-        {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.6 }}
-        >
-          <a
-            href={registrationLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-tedx-red hover:bg-tedx-dark-red text-white font-heading font-bold text-sm sm:text-base px-8 py-3 rounded-lg transition-colors"
-          >
-            Register Now <ArrowRight size={18} />
-          </a>
-        </motion.div>
       </div>
 
       {/* ═══ LAYER 5 – Foreground / ground plane ═══ */}

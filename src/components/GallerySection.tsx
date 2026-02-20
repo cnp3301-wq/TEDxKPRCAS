@@ -12,7 +12,7 @@ const MarqueeRow = ({
   speed = 30,
   onSelect,
 }: {
-  images: { id: string; image: string; title: string }[];
+  images: { id?: string; image: string; title: string }[];
   direction: "left" | "right";
   speed?: number;
   onSelect: (img: { image: string; title: string }) => void;
@@ -30,9 +30,9 @@ const MarqueeRow = ({
         transition={{ repeat: Infinity, duration: totalDuration, ease: "linear" }}
       >
         {Array.from({ length: copies }).flatMap((_, copyIdx) =>
-          images.map((img) => (
+          images.map((img, imgIdx) => (
             <button
-              key={`${copyIdx}-${img.id}`}
+              key={`${copyIdx}-${img.id ?? imgIdx}`}
               onClick={() => onSelect(img)}
               className="relative flex-shrink-0 h-44 sm:h-52 md:h-60 lg:h-64 aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none"
             >

@@ -134,6 +134,20 @@ const AdminPage = () => {
   const [editingContact, setEditingContact] = useState(false);
   const [contactFormData, setContactFormData] = useState({ email: "", phone: "", address: "", formLink: "", registrationLink: "" });
 
+  // Event countdown date
+  const [countdownDate, setCountdownDate] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("tedx_event_countdown");
+    if (saved) setCountdownDate(saved);
+  }, []);
+
+  const saveCountdownDate = (dateStr: string) => {
+    setCountdownDate(dateStr);
+    localStorage.setItem("tedx_event_countdown", dateStr);
+    showNotification("success", "Event countdown date saved!");
+  };
+
   // Gallery UI state
   const [showGalleryForm, setShowGalleryForm] = useState(false);
   const [editingGalleryItem, setEditingGalleryItem] = useState<any>(null);
@@ -1279,6 +1293,29 @@ const AdminPage = () => {
                         This link will be used for the "Register Now" button on the website
                       </p>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Event Countdown Date & Time
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={countdownDate}
+                        onChange={(e) => setCountdownDate(e.target.value)}
+                        className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                      />
+                      <div className="flex items-center gap-2 mt-2">
+                        <button
+                          onClick={() => saveCountdownDate(countdownDate)}
+                          className="bg-tedx-red/20 hover:bg-tedx-red/30 text-tedx-red font-medium px-4 py-1.5 rounded-lg text-sm"
+                        >
+                          Set Countdown
+                        </button>
+                        <p className="text-xs text-muted-foreground">
+                          The homepage countdown timer will count down to this date
+                        </p>
+                      </div>
+                    </div>
                     <div className="flex gap-3 pt-4">
                       <button
                         onClick={() => {
@@ -1342,6 +1379,15 @@ const AdminPage = () => {
                         <a href={contact.registrationLink} target="_blank" rel="noopener noreferrer" className="font-medium text-green-600 hover:underline break-all text-sm">
                           {contact.registrationLink}
                         </a>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-tedx-red/10 border border-tedx-red/30 rounded-lg">
+                      <Calendar className="w-5 h-5 text-tedx-red" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Event Countdown Date</p>
+                        <p className="font-medium text-tedx-red">
+                          {countdownDate ? new Date(countdownDate).toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" }) : "Not set — using default"}
+                        </p>
                       </div>
                     </div>
                   </div>
