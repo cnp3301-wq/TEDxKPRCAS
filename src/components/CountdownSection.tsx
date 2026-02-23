@@ -147,7 +147,7 @@ const CountdownSection = () => {
             >
                 <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
                 <div className="text-center">
-                  <span className="font-heading text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-black text-tedx-red leading-none block">23</span>
+                  <span className="font-heading text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-black text-tedx-red leading-none block">10</span>
                   <span className="font-heading text-2xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-tedx-red leading-none block -mt-1">APR</span>
                 </div>
                 <div className="w-[2px] sm:w-[3px] h-12 sm:h-16 md:h-20 lg:h-28 bg-white/30 rounded-full" />
