@@ -2,15 +2,20 @@ import { motion } from "framer-motion";
 import { useSponsors } from "@/hooks/use-database";
 
 /* ── Fallback sponsor logos (used when no DB data) ── */
+const createPlaceholderSvg = (text: string, isRed: boolean) => {
+  const color = isRed ? "%23ef4444" : "%23ffffff";
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='80' viewBox='0 0 200 80'%3E%3Crect fill='%231a1a1a' width='200' height='80'/%3E%3Ctext x='100' y='45' fill='${color}' font-family='sans-serif' font-size='14' text-anchor='middle'%3E${text}%3C/text%3E%3C/svg%3E`;
+};
+
 const fallbackSponsors = [
-  { name: "Sponsor 1", logo: "https://via.placeholder.com/200x80/1a1a1a/ef4444?text=Sponsor+1" },
-  { name: "Sponsor 2", logo: "https://via.placeholder.com/200x80/1a1a1a/ffffff?text=Sponsor+2" },
-  { name: "Sponsor 3", logo: "https://via.placeholder.com/200x80/1a1a1a/ef4444?text=Sponsor+3" },
-  { name: "Sponsor 4", logo: "https://via.placeholder.com/200x80/1a1a1a/ffffff?text=Sponsor+4" },
-  { name: "Sponsor 5", logo: "https://via.placeholder.com/200x80/1a1a1a/ef4444?text=Sponsor+5" },
-  { name: "Sponsor 6", logo: "https://via.placeholder.com/200x80/1a1a1a/ffffff?text=Sponsor+6" },
-  { name: "Sponsor 7", logo: "https://via.placeholder.com/200x80/1a1a1a/ef4444?text=Sponsor+7" },
-  { name: "Sponsor 8", logo: "https://via.placeholder.com/200x80/1a1a1a/ffffff?text=Sponsor+8" },
+  { name: "Sponsor 1", logo: createPlaceholderSvg("Sponsor 1", true) },
+  { name: "Sponsor 2", logo: createPlaceholderSvg("Sponsor 2", false) },
+  { name: "Sponsor 3", logo: createPlaceholderSvg("Sponsor 3", true) },
+  { name: "Sponsor 4", logo: createPlaceholderSvg("Sponsor 4", false) },
+  { name: "Sponsor 5", logo: createPlaceholderSvg("Sponsor 5", true) },
+  { name: "Sponsor 6", logo: createPlaceholderSvg("Sponsor 6", false) },
+  { name: "Sponsor 7", logo: createPlaceholderSvg("Sponsor 7", true) },
+  { name: "Sponsor 8", logo: createPlaceholderSvg("Sponsor 8", false) },
 ];
 
 const SponsorCard = ({ sponsor }: { sponsor: { name: string; logo: string } }) => (

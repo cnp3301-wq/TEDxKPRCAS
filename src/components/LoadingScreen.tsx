@@ -141,128 +141,67 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           )}
 
           <div className="flex flex-col items-center justify-center relative z-10">
-            {/* Phase 1: TEDx outline - single clean render */}
+            {/* Phase 1: Logo outline */}
             {phase >= 1 && phase < 2 && (
-              <motion.div className="flex items-start">
-                {"TED".split("").map((char, i) => (
-                  <motion.span
-                    key={`outline-${i}`}
-                    className="font-heading text-5xl sm:text-6xl md:text-[7rem] lg:text-[11rem] xl:text-[14rem] font-bold tracking-[0em]"
-                    style={{
-                      WebkitTextStroke: "2px hsl(var(--tedx-red))",
-                      color: "transparent",
-                    }}
-                    initial={{ opacity: 0, y: 80 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: i * 0.12, ease: "backOut" }}
-                  >
-                    {char}
-                  </motion.span>
-                ))}
-                <motion.span
-                  className="font-heading text-2xl sm:text-3xl md:text-[3.5rem] lg:text-[5.5rem] xl:text-[7rem] font-black"
-                  style={{
-                    WebkitTextStroke: "2px hsl(var(--tedx-red))",
-                    color: "transparent",
-                  }}
-                  initial={{ opacity: 0, scale: 0, rotate: -180 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.7, delay: 0.5, ease: "backOut" }}
-                >
-                  x
-                </motion.span>
+              <motion.div className="flex items-center justify-center">
+                <motion.img
+                  src="/logo.png"
+                  alt="TEDx KPRCAS"
+                  className="h-16 sm:h-24 md:h-32 lg:h-44 xl:h-56 w-auto"
+                  style={{ filter: "brightness(0) saturate(100%)" }}
+                  initial={{ opacity: 0, y: 80 }}
+                  animate={{ opacity: 0.3, y: 0 }}
+                  transition={{ duration: 0.6, ease: "backOut" }}
+                />
               </motion.div>
             )}
 
-            {/* Phase 2+: TEDx fills red with glitch effect */}
+            {/* Phase 2+: Logo fills with glitch effect */}
             {phase >= 2 && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-start relative"
+                className="flex items-center justify-center relative"
               >
-                <motion.div
-                  className="flex items-start"
+                <motion.img
+                  src="/logo.png"
+                  alt="TEDx KPRCAS"
+                  className="h-16 sm:h-24 md:h-32 lg:h-44 xl:h-56 w-auto"
                   animate={phase === 2 ? {
                     x: [0, -3, 4, -2, 0],
                     skewX: [0, -2, 1, -1, 0],
                   } : {}}
                   transition={{ duration: 0.3 }}
-                >
-                  {"TED".split("").map((char, i) => (
-                    <motion.span
-                      key={`filled-${i}`}
-                      className="font-heading text-5xl sm:text-6xl md:text-[7rem] lg:text-[11rem] xl:text-[14rem] font-bold tracking-[0em]"
-                      style={{ WebkitTextStroke: "2px hsl(var(--tedx-red))" }}
-                      initial={{ color: "transparent" }}
-                      animate={{ color: "hsl(var(--tedx-red))" }}
-                      transition={{ duration: 0.3, delay: i * 0.08 }}
-                    >
-                      {char}
-                    </motion.span>
-                  ))}
-                  <motion.span
-                    className="font-heading text-2xl sm:text-3xl md:text-[3.5rem] lg:text-[5.5rem] xl:text-[7rem] font-bold text-tedx-red tracking-[0em]"
-                    initial={{ color: "transparent" }}
-                    animate={{ color: "hsl(var(--tedx-red))" }}
-                    transition={{ duration: 0.3, delay: 0.3 }}
-                  >
-                    x
-                  </motion.span>
-                </motion.div>
+                />
 
                 {/* Glitch duplicates */}
                 {phase === 2 && (
                   <>
-                    <motion.span
-                      className="absolute font-heading text-5xl sm:text-6xl md:text-[7rem] lg:text-[11rem] xl:text-[14rem] font-bold text-tedx-red/30 tracking-[0em]"
+                    <motion.img
+                      src="/logo.png"
+                      alt=""
+                      className="absolute h-16 sm:h-24 md:h-32 lg:h-44 xl:h-56 w-auto opacity-30"
                       initial={{ x: 0 }}
                       animate={{ x: [0, 5, -3, 0], opacity: [0, 0.5, 0.3, 0] }}
                       transition={{ duration: 0.4 }}
                       style={{ clipPath: "inset(30% 0 40% 0)" }}
-                    >
-                      TED
-                    </motion.span>
-                    <motion.span
-                      className="absolute font-heading text-5xl sm:text-6xl md:text-[7rem] lg:text-[11rem] xl:text-[14rem] font-bold tracking-[0em]"
+                    />
+                    <motion.img
+                      src="/logo.png"
+                      alt=""
+                      className="absolute h-16 sm:h-24 md:h-32 lg:h-44 xl:h-56 w-auto opacity-40"
                       initial={{ x: 0 }}
                       animate={{ x: [0, -4, 6, 0], opacity: [0, 0.3, 0.2, 0] }}
                       transition={{ duration: 0.5, delay: 0.1 }}
-                      style={{ clipPath: "inset(60% 0 10% 0)", color: "hsl(var(--tedx-red) / 0.4)" }}
-                    >
-                      TED
-                    </motion.span>
+                      style={{ clipPath: "inset(60% 0 10% 0)" }}
+                    />
                   </>
                 )}
               </motion.div>
             )}
 
-            {/* Phase 3: KPRCAS slides in with staggered letters */}
+            {/* Phase 3: Tagline */}
             {phase >= 3 && (
-              <motion.div
-                className="flex items-baseline mt-2 sm:mt-3 md:mt-4 lg:mt-5 xl:mt-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {"KPRCAS".split("").map((char, i) => (
-                  <motion.span
-                    key={`kpr-${i}`}
-                    className="font-heading text-3xl sm:text-4xl md:text-[4rem] lg:text-[6rem] xl:text-[9rem] font-bold text-foreground tracking-[0em]"
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    transition={{
-                      duration: 0.5,
-                      delay: i * 0.08,
-                      ease: "easeOut",
-                    }}
-                  >
-                    {char}
-                  </motion.span>
-                ))}
-              </motion.div>
-            )}
-
-            {/* Phase 4: Tagline */}
-            {phase >= 4 && (
               <motion.p
                 className="text-muted-foreground font-heading text-sm sm:text-lg md:text-2xl tracking-[0.2em] sm:tracking-[0.3em] uppercase mt-4 sm:mt-5 md:mt-6 lg:mt-8"
                 initial={{ opacity: 0, letterSpacing: "0.6em" }}
