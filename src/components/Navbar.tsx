@@ -95,10 +95,8 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-md border-b border-border safe-area-top">
       <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4">
-        <Link to="/" className="flex items-baseline gap-0.5">
-          <span className="font-heading text-lg sm:text-xl font-bold text-tedx-red tracking-[0em]">TED</span>
-          <sup className="font-heading text-xs sm:text-sm font-bold text-tedx-red tracking-[0em]">x</sup>
-          <span className="font-heading text-lg sm:text-xl font-bold text-foreground ml-0.5 tracking-[0em]">KPRCAS</span>
+        <Link to="/" className="flex items-center">
+          <img src="/logo.png" alt="TEDx KPRCAS" className="h-8 sm:h-10 w-auto" />
         </Link>
 
         {/* Desktop nav */}

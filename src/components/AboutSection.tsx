@@ -343,10 +343,7 @@ const AboutSection = () => {
               <div key={`${copy}-${i}`} className="inline-flex flex-shrink-0 items-end mx-1">
               <div className="relative">
                 <div className="relative rounded-t-xl border-2 px-4 sm:px-6 md:px-10 py-3 sm:py-4 md:py-6 bg-gradient-to-b from-gray-800 to-gray-950 border-gray-600">
-                  <span className="font-heading text-xl sm:text-2xl md:text-3xl font-black">
-                    <span className="text-tedx-red">TED</span><sup className="text-tedx-red text-xs">x</sup>{" "}
-                    <span className="text-white">KPRCAS</span>
-                  </span>
+                  <img src="/logo.png" alt="TEDx KPRCAS" className="h-6 sm:h-8 md:h-10 w-auto" />
                   <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-4 h-3 bg-gray-600 rounded-sm z-20" />
                 </div>
                 <div className="h-3 bg-gray-800 border-x-2 border-gray-600" />
