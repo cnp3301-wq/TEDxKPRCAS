@@ -65,7 +65,7 @@ type Participant = {
 };
 
 
-const AdminPage = () => {
+const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
   const [tab, setTab] = useState<"participants" | "speakers" | "certificates" | "about" | "contact" | "gallery" | "team" | "sponsors">("participants");
 
   // Toast/Notification state
@@ -652,15 +652,27 @@ const AdminPage = () => {
           transition={{ duration: 0.7 }}
           className="mb-10"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
-              <Shield className="w-8 h-8 text-primary" />
-            </motion.div>
-            <h1 className="font-heading text-4xl md:text-5xl font-black">
-              <span className="text-primary">TED</span>
-              <sup className="text-primary text-2xl">x</sup>{" "}
-              <span className="text-foreground">Admin CMS</span>
-            </h1>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+                <Shield className="w-8 h-8 text-primary" />
+              </motion.div>
+              <h1 className="font-heading text-4xl md:text-5xl font-black">
+                <span className="text-primary">TED</span>
+                <sup className="text-primary text-2xl">x</sup>{" "}
+                <span className="text-foreground">Admin CMS</span>
+              </h1>
+            </div>
+            {onLogout && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onLogout}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"
+              >
+                Logout
+              </motion.button>
+            )}
           </div>
           <p className="text-muted-foreground text-lg">Complete Content Management System with CRUD Operations</p>
         </motion.div>
