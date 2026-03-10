@@ -141,8 +141,7 @@ const ThemeSection = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="flex-shrink-0 relative hidden lg:block"
-              style={{ width: 380, height: 300 }}
+              className="flex-shrink-0 relative w-[280px] h-[220px] sm:w-[320px] sm:h-[250px] lg:w-[380px] lg:h-[300px]"
             >
               {/* TV Glow */}
               <div className="absolute inset-0 bg-yellow-400/5 blur-3xl rounded-3xl pointer-events-none" />
