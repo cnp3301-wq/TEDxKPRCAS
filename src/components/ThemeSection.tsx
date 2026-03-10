@@ -99,7 +99,7 @@ const ThemeSection = () => {
                   { y: 176, h: 24, gold: "url(#gold3)", delay: "0.15s" },
                   { y: 210, h: 32, gold: "url(#gold1)", delay: "0s" },
                 ].map((bar, i) => (
-                  <g key={`bar-${i}`} opacity="0.18">
+                  <g key={`bar-${i}`} opacity="0.45">
                     {/* Horizontal bar */}
                     <rect x="-400" y={bar.y} width="700" height={bar.h} fill={bar.gold}>
                       <animate attributeName="x" from="-400" to="900" dur="4s" begin={bar.delay} repeatCount="indefinite" />
@@ -109,12 +109,12 @@ const ThemeSection = () => {
 
                 {/* Chevron arrows moving right */}
                 {[
-                  { x: -200, size: 90, gold: "url(#gold3)", opacity: 0.25, dur: "3.5s", delay: "0s" },
-                  { x: -320, size: 75, gold: "url(#gold1)", opacity: 0.2, dur: "3.5s", delay: "0.4s" },
-                  { x: -440, size: 60, gold: "url(#gold2)", opacity: 0.15, dur: "3.5s", delay: "0.8s" },
-                  { x: -560, size: 50, gold: "url(#gold4)", opacity: 0.12, dur: "3.5s", delay: "1.2s" },
-                  { x: -150, size: 80, gold: "url(#gold1)", opacity: 0.22, dur: "4s", delay: "1.8s" },
-                  { x: -350, size: 65, gold: "url(#gold3)", opacity: 0.18, dur: "4s", delay: "2.2s" },
+                  { x: -200, size: 90, gold: "url(#gold3)", opacity: 0.6, dur: "3.5s", delay: "0s" },
+                  { x: -320, size: 75, gold: "url(#gold1)", opacity: 0.5, dur: "3.5s", delay: "0.4s" },
+                  { x: -440, size: 60, gold: "url(#gold2)", opacity: 0.4, dur: "3.5s", delay: "0.8s" },
+                  { x: -560, size: 50, gold: "url(#gold4)", opacity: 0.35, dur: "3.5s", delay: "1.2s" },
+                  { x: -150, size: 80, gold: "url(#gold1)", opacity: 0.55, dur: "4s", delay: "1.8s" },
+                  { x: -350, size: 65, gold: "url(#gold3)", opacity: 0.45, dur: "4s", delay: "2.2s" },
                 ].map((chev, i) => {
                   const cy = 150;
                   const s = chev.size;
@@ -125,7 +125,7 @@ const ThemeSection = () => {
                         fill={chev.gold}
                         stroke="#f5d782"
                         strokeWidth="1"
-                        strokeOpacity="0.3"
+                        strokeOpacity="0.6"
                       >
                         <animateTransform attributeName="transform" type="translate" from="0 0" to="1200 0" dur={chev.dur} begin={chev.delay} repeatCount="indefinite" />
                       </polygon>
