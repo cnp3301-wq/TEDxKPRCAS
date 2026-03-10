@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
-import { useCurrentEvent, useContactInfo } from "@/hooks/use-database";
+import { useCurrentEvent, useContactInfo, useSiteSetting } from "@/hooks/use-database";
 
 const DEFAULT_REGISTRATION = "https://forms.gle/example";
 
@@ -10,6 +10,13 @@ const ThemeSection = () => {
   const [registrationLink, setRegistrationLink] = useState(DEFAULT_REGISTRATION);
   const { data: currentEvent } = useCurrentEvent();
   const { data: contactInfo } = useContactInfo();
+  const { data: themeVideoUrl } = useSiteSetting("theme_video_url");
+
+  const getEmbedUrl = (url: string) => {
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&mute=1&loop=1&playlist=${ytMatch[1]}`;
+    return url;
+  };
 
   useEffect(() => {
     if (contactInfo?.registrationLink) {
@@ -49,13 +56,13 @@ const ThemeSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="rounded-2xl bg-black border border-white/10 px-6 sm:px-10 md:px-16 py-14 sm:py-20 md:py-28 text-center mb-4 sm:mb-6 overflow-hidden relative"
+          className="rounded-2xl bg-black border border-white/10 px-6 sm:px-10 md:px-16 py-14 sm:py-20 md:py-28 text-center mb-4 sm:mb-6 relative"
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-yellow-500/[0.03] rounded-full blur-3xl pointer-events-none" />
 
           {/* Main content */}
           <div
-            className="relative z-10 flex items-center justify-center"
+            className="relative z-10 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12"
           >
 
             {/* Golden Metallic Title */}
@@ -95,6 +102,132 @@ const ThemeSection = () => {
                 ))}
               </span>
             </motion.h2>
+
+            {/* Retro TV */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="flex-shrink-0 relative hidden lg:block"
+              style={{ width: 380, height: 300 }}
+            >
+              {/* TV Glow */}
+              <div className="absolute inset-0 bg-yellow-400/5 blur-3xl rounded-3xl pointer-events-none" />
+
+              {/* Retro TV Frame */}
+              <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 8px 30px rgba(0,0,0,0.7))' }}>
+                {/* TV Body */}
+                <div className="absolute inset-0 rounded-2xl" style={{
+                  background: 'linear-gradient(145deg, #8B6914 0%, #6B4F12 20%, #5C4410 40%, #4A3B0E 60%, #3D310C 80%, #2E250A 100%)',
+                  border: '3px solid #4A3B0E',
+                  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.6)',
+                }}>
+                  {/* Wood grain texture */}
+                  <div className="absolute inset-0 rounded-2xl opacity-20" style={{
+                    backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(0,0,0,0.1) 8px, rgba(0,0,0,0.1) 9px)',
+                  }} />
+                </div>
+
+                {/* Screen bezel */}
+                <div className="absolute rounded-xl" style={{
+                  top: 22, left: 22, right: 115, bottom: 32,
+                  background: 'linear-gradient(145deg, #a8a8a8 0%, #888 30%, #777 60%, #666 100%)',
+                  padding: 12,
+                  borderRadius: 16,
+                  boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.4)',
+                }}>
+                  {/* Inner screen */}
+                  <div className="w-full h-full rounded-lg overflow-hidden relative" style={{
+                    background: '#111',
+                    boxShadow: 'inset 0 3px 15px rgba(0,0,0,0.8)',
+                  }}>
+                    {/* CRT curvature */}
+                    <div className="absolute inset-0 z-10 pointer-events-none" style={{
+                      background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)',
+                    }} />
+                    {/* Scanlines */}
+                    <div className="absolute inset-0 z-10 pointer-events-none opacity-10" style={{
+                      backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px)',
+                    }} />
+
+                    {/* Video content */}
+                    {themeVideoUrl ? (
+                      themeVideoUrl.includes('youtube') || themeVideoUrl.includes('youtu.be') ? (
+                        <iframe
+                          src={getEmbedUrl(themeVideoUrl)}
+                          className="w-full h-full"
+                          allow="autoplay; encrypted-media"
+                          allowFullScreen
+                          style={{ border: 'none' }}
+                          title="Theme Video"
+                        />
+                      ) : (
+                        <video
+                          src={themeVideoUrl}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover"
+                        />
+                      )
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-gray-600 text-3xl mb-1">📺</div>
+                          <p className="text-gray-600 text-[10px]">No signal</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right panel - dials */}
+                <div className="absolute rounded-r-xl flex flex-col items-center justify-between py-6" style={{
+                  top: 22, right: 14, width: 90, bottom: 32,
+                }}>
+                  <div className="text-[9px] tracking-widest text-yellow-200/40 uppercase">TEDx</div>
+
+                  {/* Channel dial */}
+                  <div className="w-14 h-14 rounded-full" style={{
+                    background: 'linear-gradient(145deg, #999 0%, #666 50%, #555 100%)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.2)',
+                  }}>
+                    <div className="w-full h-full rounded-full relative" style={{
+                      background: 'linear-gradient(145deg, #777 0%, #555 100%)',
+                      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)',
+                    }}>
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="absolute w-0.5 h-1 bg-gray-400/50" style={{
+                          top: '50%', left: '50%',
+                          transform: `rotate(${i * 45}deg) translateY(-12px) translateX(-50%)`,
+                        }} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Volume dial */}
+                  <div className="w-11 h-11 rounded-full" style={{
+                    background: 'linear-gradient(145deg, #888 0%, #555 100%)',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                  }} />
+
+                  {/* Speaker grille */}
+                  <div className="w-16 flex flex-col gap-1">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="w-full h-0.5 bg-yellow-900/30 rounded-full" />
+                    ))}
+                  </div>
+                </div>
+
+                {/* TV Stand */}
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3/4 h-3 rounded-b-lg" style={{
+                  background: 'linear-gradient(180deg, #2E250A 0%, #1a1a0a 100%)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                }} />
+              </div>
+            </motion.div>
           </div>
         </motion.div>
 

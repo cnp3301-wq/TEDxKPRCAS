@@ -505,6 +505,75 @@ export const teamService = {
 
 // ==================== SPONSORS ====================
 
+export const siteSettingsService = {
+  async get(key: string): Promise<string> {
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("*")
+      .eq("key", key)
+      .limit(1)
+      .single();
+
+    if (error) return "";
+    return data?.value || "";
+  },
+
+  async set(key: string, value: string) {
+    const { data: existing } = await supabase
+      .from("site_settings")
+      .select("*")
+      .eq("key", key)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .insert([{ key, value }])
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+  },
+
+  async remove(key: string) {
+    const { error } = await supabase
+      .from("site_settings")
+      .delete()
+      .eq("key", key);
+    if (error) throw error;
+  },
+
+  async uploadVideo(file: File) {
+    const fileExt = file.name.split(".").pop();
+    const filePath = `theme-video-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("site-assets")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw new Error(
+      `Upload failed: ${uploadError.message}. Please run this SQL in Supabase SQL Editor: INSERT INTO storage.buckets (id, name, public) VALUES ('site-assets', 'site-assets', true) ON CONFLICT (id) DO NOTHING;`
+    );
+
+    const { data } = supabase.storage
+      .from("site-assets")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  },
+};
+
 export const sponsorService = {
   async getAll() {
     const { data, error } = await supabase

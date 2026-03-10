@@ -50,6 +50,9 @@ import {
   useCreateSponsor,
   useUpdateSponsor,
   useDeleteSponsor,
+  useSiteSetting,
+  useUpdateSiteSetting,
+  useDeleteSiteSetting,
 } from "@/hooks/use-database";
 
 // Type definitions
@@ -163,6 +166,17 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
   const [editingGalleryItem, setEditingGalleryItem] = useState<any>(null);
   const [galleryFormData, setGalleryFormData] = useState({ title: "", description: "", image: "" });
   const [galleryVideoUrl, setGalleryVideoUrl] = useState("");
+  const [themeVideoUrl, setThemeVideoUrl] = useState("");
+
+  // DB hooks for theme video
+  const { data: dbThemeVideo } = useSiteSetting("theme_video_url");
+  const { mutate: updateSiteSetting } = useUpdateSiteSetting();
+  const { mutate: deleteSiteSetting } = useDeleteSiteSetting();
+
+  // Sync theme video from DB
+  useEffect(() => {
+    if (dbThemeVideo !== undefined) setThemeVideoUrl(dbThemeVideo);
+  }, [dbThemeVideo]);
 
   // Load gallery video URL from localStorage
   useEffect(() => {
@@ -174,6 +188,33 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
     setGalleryVideoUrl(url);
     localStorage.setItem("tedx_gallery_video", url);
     showNotification("success", "Gallery video URL saved!");
+  };
+
+  const saveThemeVideoUrl = (url: string) => {
+    updateSiteSetting({ key: "theme_video_url", value: url }, {
+      onSuccess: () => {
+        setThemeVideoUrl(url);
+        showNotification("success", "Theme TV video URL saved to database!");
+      },
+      onError: () => showNotification("error", "Failed to save theme video URL"),
+    });
+  };
+
+  const [themeVideoUploading, setThemeVideoUploading] = useState(false);
+
+  const handleThemeVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setThemeVideoUploading(true);
+    try {
+      const { siteSettingsService } = await import("@/lib/api");
+      const publicUrl = await siteSettingsService.uploadVideo(file);
+      saveThemeVideoUrl(publicUrl);
+    } catch (err) {
+      showNotification("error", "Failed to upload video file. Make sure 'site-assets' storage bucket exists in Supabase.");
+    } finally {
+      setThemeVideoUploading(false);
+    }
   };
 
   // Team UI state
@@ -1509,6 +1550,73 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
                     <Plus className="w-4 h-4" />
                     Add Image
                   </button>
+                </div>
+
+                {/* Theme TV Video URL */}
+                <div className="mb-6 p-4 border border-yellow-500/30 rounded-xl bg-yellow-500/5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Video className="w-5 h-5 text-yellow-500" />
+                    <h3 className="text-sm">📺 Theme Section - Retro TV Video</h3>
+                  </div>
+
+                  {/* File Upload */}
+                  <div className="mb-3">
+                    <label className="cursor-pointer flex items-center justify-center gap-2 border-2 border-dashed border-yellow-500/30 rounded-lg p-4 hover:border-yellow-500/60 transition-colors">
+                      <Upload className="w-5 h-5 text-yellow-500" />
+                      <span className="text-sm text-yellow-200">
+                        {themeVideoUploading ? "Uploading..." : "Click to upload video file (.mp4, .webm, .mov)"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime,video/*"
+                        onChange={handleThemeVideoFileUpload}
+                        className="hidden"
+                        disabled={themeVideoUploading}
+                      />
+                    </label>
+                  </div>
+
+                  {/* OR divider */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-xs text-muted-foreground">OR paste a URL</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+
+                  {/* URL Input */}
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={themeVideoUrl}
+                      onChange={(e) => setThemeVideoUrl(e.target.value)}
+                      placeholder="Paste YouTube URL or direct video URL"
+                      className="flex-1 bg-secondary border border-border rounded-lg px-4 py-2 text-sm"
+                    />
+                    <button
+                      onClick={() => saveThemeVideoUrl(themeVideoUrl)}
+                      className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-600 px-4 py-2 rounded-lg text-sm"
+                    >
+                      Save
+                    </button>
+                    {themeVideoUrl && (
+                      <button
+                        onClick={() => { deleteSiteSetting("theme_video_url", { onSuccess: () => { setThemeVideoUrl(""); showNotification("success", "Theme video removed!"); } }); }}
+                        className="bg-red-500/20 hover:bg-red-500/30 text-red-600 px-3 py-2 rounded-lg text-sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Preview */}
+                  {themeVideoUrl && (
+                    <div className="mt-3 p-2 bg-black/40 rounded-lg">
+                      <p className="text-xs text-muted-foreground mb-1">✅ Current video:</p>
+                      <p className="text-xs text-yellow-400 break-all">{themeVideoUrl}</p>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-muted-foreground mt-2">Upload a video file or paste a YouTube/direct URL. Stored in the database.</p>
                 </div>
 
                 {/* Gallery Video URL */}

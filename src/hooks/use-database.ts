@@ -11,6 +11,7 @@ import {
   galleryService,
   teamService,
   sponsorService,
+  siteSettingsService,
 } from "@/lib/api";
 import type {
   Participant,
@@ -660,6 +661,62 @@ export function useDeleteSponsor() {
     },
     onError: (error) => {
       console.error("❌ Failed to delete sponsor:", error);
+    },
+  });
+}
+
+// ==================== SITE SETTINGS HOOKS ====================
+
+export function useSiteSetting(key: string) {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["site_settings", key],
+    queryFn: () => siteSettingsService.get(key),
+    staleTime: 0,
+  });
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel(`site-settings-${key}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "site_settings",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["site_settings", key] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient, key]);
+
+  return query;
+}
+
+export function useUpdateSiteSetting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ key, value }: { key: string; value: string }) =>
+      siteSettingsService.set(key, value),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["site_settings", variables.key] });
+    },
+  });
+}
+
+export function useDeleteSiteSetting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (key: string) => siteSettingsService.remove(key),
+    onSuccess: (_, key) => {
+      queryClient.invalidateQueries({ queryKey: ["site_settings", key] });
     },
   });
 }

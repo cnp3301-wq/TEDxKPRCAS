@@ -28,8 +28,53 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 
 -- ============================================================================
+-- STEP 1.5: CREATE STORAGE BUCKETS
+-- ============================================================================
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'site-assets',
+  'site-assets',
+  true,
+  104857600, -- 100MB
+  ARRAY['video/mp4','video/webm','video/quicktime','video/ogg','video/x-msvideo']
+) ON CONFLICT (id) DO NOTHING;
+
+-- Allow public read access
+CREATE POLICY "site_assets_public_read" ON storage.objects FOR SELECT
+  USING (bucket_id = 'site-assets');
+
+-- Allow uploads
+CREATE POLICY "site_assets_upload" ON storage.objects FOR INSERT
+  WITH CHECK (bucket_id = 'site-assets');
+
+-- Allow updates
+CREATE POLICY "site_assets_update" ON storage.objects FOR UPDATE
+  USING (bucket_id = 'site-assets') WITH CHECK (bucket_id = 'site-assets');
+
+-- Allow deletes
+CREATE POLICY "site_assets_delete" ON storage.objects FOR DELETE
+  USING (bucket_id = 'site-assets');
+
+
+-- ============================================================================
 -- STEP 2: CREATE TABLES
 -- ============================================================================
+
+-- ==================== SITE SETTINGS TABLE ====================
+-- Stores site-wide settings like theme video URL
+DROP TABLE IF EXISTS site_settings CASCADE;
+CREATE TABLE site_settings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  key TEXT NOT NULL UNIQUE,
+  value TEXT,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_site_settings_key ON site_settings(key);
+
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on site_settings" ON site_settings FOR ALL USING (true) WITH CHECK (true);
 
 -- ==================== PARTICIPANTS TABLE ====================
 -- Stores event participants/registrants

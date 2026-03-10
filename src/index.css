@@ -1,4 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400&family=Oswald:wght@700;900&display=swap');
+
+@font-face {
+  font-family: 'Neuland Inline';
+  src: url('https://db.onlinewebfonts.com/t/3f47055639e41a9b34de4efcd44d1f95.woff2') format('woff2'),
+       url('https://db.onlinewebfonts.com/t/3f47055639e41a9b34de4efcd44d1f95.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
 
 @tailwind base;
 @tailwind components;
