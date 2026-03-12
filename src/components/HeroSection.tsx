@@ -118,9 +118,9 @@ function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="border border-tedx-red/40 rounded-full px-4 sm:px-5 md:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6"
+          className="border border-tedx-red/40 rounded-full px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2 mb-4 sm:mb-6"
         >
-          <span className="text-sm sm:text-base md:text-lg lg:text-xl tracking-[0.05em] uppercase leading-relaxed">
+          <span className="text-[10px] sm:text-xs md:text-base lg:text-xl tracking-[0.05em] uppercase leading-relaxed">
             <span className="text-tedx-red">x</span>
             <span className="text-white font-normal"> = Independently organised TED event</span>
           </span>
