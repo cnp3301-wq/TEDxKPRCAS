@@ -522,7 +522,7 @@ export const siteSettingsService = {
       .select("*")
       .eq("key", key)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) return "";
     return data?.value || "";
