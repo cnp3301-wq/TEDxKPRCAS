@@ -23,73 +23,6 @@ const useIsMobile = () => {
 
 
 /* ── Train Animation Component ── */
-interface TrainAnimationProps {
-  direction: "left" | "right";
-}
-
-const TrainAnimation = ({ direction }: TrainAnimationProps) => {
-  const isLeft = direction === "left";
-  
-  return (
-    <div className="relative h-24 md:h-32 overflow-hidden my-6 md:my-8">
-      {/* Rails */}
-      <div className="absolute top-1/2 left-0 right-0 z-0 -translate-y-1/2">
-        <div className="h-1 bg-gray-400 mb-2" />
-        <div className="h-1 bg-gray-400" />
-        <div className="absolute top-0 left-0 right-0 h-full flex">
-          {Array(40).fill(null).map((_, i) => (
-            <div key={i} className="h-full bg-gray-500 flex-shrink-0" style={{ width: '2px', marginRight: '18px' }} />
-          ))}
-        </div>
-      </div>
-
-      {/* Train */}
-      <motion.div
-        className="absolute top-1/2 -translate-y-1/2 z-10"
-        initial={isLeft ? { x: "calc(100vw + 200px)" } : { x: "calc(-100vw - 200px)" }}
-        animate={isLeft ? { x: "calc(-100vw - 200px)" } : { x: "calc(100vw + 200px)" }}
-        transition={{
-          duration: 8,
-          ease: "linear",
-          repeat: Infinity,
-        }}
-      >
-        <div className="flex items-end gap-0">
-          {/* Locomotive */}
-          <div className="relative">
-            <div className="w-20 h-14 md:w-28 md:h-20 bg-gradient-to-b from-red-700 to-red-900 rounded-t-lg border-2 border-red-600 flex items-center justify-center flex-shrink-0">
-              <div className="text-white text-xs md:text-sm font-bold text-center">TEDx</div>
-            </div>
-            <div className="w-20 md:w-28 h-1 bg-red-800 border-x-2 border-red-600" />
-            <div className="flex justify-between px-2 md:px-3 gap-1 md:gap-2">
-              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-yellow-500" />
-              </div>
-              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-yellow-500" />
-              </div>
-            </div>
-          </div>
-
-          {/* Cargo cars */}
-          {[0, 1, 2].map((idx) => (
-            <div key={idx} className="relative flex-shrink-0">
-              <div className="w-16 h-12 md:w-24 md:h-16 bg-gradient-to-b from-gray-700 to-gray-900 border-2 border-gray-600 flex items-center justify-center mx-0.5 md:mx-1">
-                <div className="text-white text-xs md:text-sm font-bold">#{idx + 1}</div>
-              </div>
-              <div className="w-16 md:w-24 h-1 bg-gray-800 border-x-2 border-gray-600" />
-              <div className="flex justify-between px-1.5 md:px-2 gap-1">
-                <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-800 border border-gray-600" />
-                <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-800 border border-gray-600" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
 /* ── Cinematic 3D Rotating Globe (Canvas) ── */
 const GlobeAnimation = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -397,8 +330,6 @@ const AboutSection = () => {
                 {sections[0].content}
               </p>
             )}
-            {/* Train moving right */}
-            <TrainAnimation direction="right" />
           </motion.div>
 
           <motion.div
@@ -447,8 +378,6 @@ const AboutSection = () => {
                 {sections[1].content}
               </p>
             )}
-            {/* Train moving left */}
-            <TrainAnimation direction="left" />
           </motion.div>
         </div>
 
