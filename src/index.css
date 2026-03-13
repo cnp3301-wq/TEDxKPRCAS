@@ -32,12 +32,12 @@ body::-webkit-scrollbar {
 }
 
 /* Keep headings as Rubik Dirt but maintain hierarchy */
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, .font-heading, .heading, .font-heading * {
   font-weight: 400 !important;
   font-family: "Rubik Dirt", sans-serif !important;
   color: white !important;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
 }
 
 /* Body text styling with Instrument Serif and 1.5 line spacing */
@@ -47,6 +47,12 @@ p, span, div, li, a {
   color: white !important;
   font-size: 40px;
   line-height: 1.5 !important;
+}
+
+/* Exclude h1-h6 and font-heading from body text styling */
+h1, h2, h3, h4, h5, h6, .font-heading, .heading {
+  font-size: inherit !important;
+  line-height: inherit !important;
 }
 
 @layer base {
