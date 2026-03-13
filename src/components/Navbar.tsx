@@ -91,7 +91,7 @@ const Navbar = () => {
           {navItems.map((item) => renderNavLink(item))}
           <Link
             to="/register"
-            className="bg-tedx-red text-foreground font-heading text-sm px-4 lg:px-5 py-2 rounded hover:bg-tedx-dark-red transition-colors whitespace-nowrap"
+            className="bg-tedx-red text-foreground font-heading text-xs px-4 lg:px-5 py-2 rounded hover:bg-tedx-dark-red transition-colors whitespace-nowrap"
           >
             Register
           </Link>
@@ -125,7 +125,7 @@ const Navbar = () => {
           <Link
             to="/register"
             onClick={() => setOpen(false)}
-            className="block mt-3 bg-tedx-red text-foreground font-heading text-base px-5 py-3.5 rounded text-center active:bg-tedx-dark-red"
+            className="block mt-3 bg-tedx-red text-foreground font-heading text-sm px-5 py-3.5 rounded text-center active:bg-tedx-dark-red"
           >
             Register
           </Link>

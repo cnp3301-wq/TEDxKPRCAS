@@ -306,7 +306,7 @@ const ThemeSection = () => {
             {/* Book Tickets Button */}
             <motion.a
               href="/register"
-              className="bg-tedx-red hover:bg-red-700 text-white font-heading text-lg sm:text-xl md:text-2xl px-6 sm:px-8 py-4 sm:py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors"
+              className="bg-tedx-red hover:bg-red-700 text-white font-heading text-sm sm:text-base md:text-lg px-6 sm:px-8 py-4 sm:py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors"
               whileHover={{ scale: 1.03, boxShadow: "0 0 30px hsl(0 84% 50% / 0.5)" }}
               whileTap={{ scale: 0.97 }}
             >
@@ -320,11 +320,11 @@ const ThemeSection = () => {
             >
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="text-center">
-                  <span className="font-heading text-5xl sm:text-6xl md:text-7xl text-tedx-red leading-none block">{eventDay}</span>
-                  <span className="font-heading text-3xl sm:text-4xl md:text-5xl text-tedx-red leading-none block -mt-1">{eventMonth}</span>
+                  <span className="font-heading text-3xl sm:text-4xl md:text-5xl text-tedx-red leading-none block">{eventDay}</span>
+                  <span className="font-heading text-lg sm:text-2xl md:text-3xl text-tedx-red leading-none block -mt-1">{eventMonth}</span>
                 </div>
                 <div className="w-[3px] h-16 sm:h-20 md:h-24 bg-white/30 rounded-full" />
-                <div className="font-heading text-4xl sm:text-5xl md:text-6xl text-white leading-none" style={{ writingMode: "vertical-lr" }}>
+                <div className="font-heading text-2xl sm:text-3xl md:text-4xl text-white leading-none" style={{ writingMode: "vertical-lr" }}>
                   {eventYear}
                 </div>
               </div>
