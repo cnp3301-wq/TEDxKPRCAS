@@ -48,6 +48,7 @@ CREATE TABLE payment_settings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   qr_code_url TEXT,
   upi_id TEXT,
+  merchant_name TEXT DEFAULT 'TEDx KPRCAS',
   payment_amount DECIMAL(10, 2) DEFAULT 0,
   payment_instructions TEXT,
   is_active BOOLEAN DEFAULT TRUE,
@@ -68,10 +69,19 @@ CREATE POLICY "payment_settings_delete" ON payment_settings FOR DELETE USING (tr
 -- ==================== REGISTRATIONS TABLE ====================
 -- Stores user registrations with form data and payment info
 DROP TABLE IF EXISTS registrations CASCADE;
+
+-- Create sequence for unique registration numbers
+DROP SEQUENCE IF EXISTS registration_number_seq CASCADE;
+CREATE SEQUENCE registration_number_seq START 1;
+
 CREATE TABLE registrations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  -- Auto-incrementing unique registration number (1, 2, 3, etc.)
+  registration_number INTEGER UNIQUE DEFAULT nextval('registration_number_seq'),
   -- Unique Registration Code (e.g., TEDX-2026-ABCD12)
   registration_code TEXT UNIQUE,
+  -- User type (student, company, other)
+  user_type TEXT DEFAULT 'student' CHECK (user_type IN ('student', 'company', 'other')),
   -- Basic info
   name TEXT NOT NULL,
   email TEXT NOT NULL,
@@ -82,6 +92,7 @@ CREATE TABLE registrations (
   payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'submitted', 'verified', 'rejected')),
   payment_screenshot_url TEXT,
   user_upi_id TEXT,
+  transaction_id TEXT, -- UPI Transaction ID entered by user
   payment_amount DECIMAL(10, 2),
   payment_verified_at TIMESTAMPTZ,
   payment_verified_by TEXT,
@@ -97,7 +108,10 @@ CREATE TABLE registrations (
 CREATE INDEX IF NOT EXISTS idx_registrations_email ON registrations(email);
 CREATE INDEX IF NOT EXISTS idx_registrations_phone ON registrations(phone);
 CREATE INDEX IF NOT EXISTS idx_registrations_registration_code ON registrations(registration_code);
+CREATE INDEX IF NOT EXISTS idx_registrations_registration_number ON registrations(registration_number);
+CREATE INDEX IF NOT EXISTS idx_registrations_user_type ON registrations(user_type);
 CREATE INDEX IF NOT EXISTS idx_registrations_payment_status ON registrations(payment_status);
+CREATE INDEX IF NOT EXISTS idx_registrations_transaction_id ON registrations(transaction_id);
 CREATE INDEX IF NOT EXISTS idx_registrations_registration_status ON registrations(registration_status);
 CREATE INDEX IF NOT EXISTS idx_registrations_created_at ON registrations(created_at);
 
@@ -173,15 +187,24 @@ SET options = ARRAY['1st Year', '2nd Year', '3rd Year', '4th Year', 'Post Gradua
 WHERE field_name = 'year_of_study';
 
 -- Insert default payment settings
-INSERT INTO payment_settings (upi_id, payment_amount, payment_instructions) VALUES
-('tedxkprcas@upi', 500.00, 'Please scan the QR code or use the UPI ID to make the payment. After payment, upload the screenshot and enter your UPI ID.');
+INSERT INTO payment_settings (upi_id, merchant_name, payment_amount, payment_instructions) VALUES
+('tedxkprcas@upi', 'TEDx KPRCAS', 500.00, 'Please scan the QR code or use the UPI ID to make the payment. After payment, upload the screenshot and enter your UPI ID.');
 
 
 -- ==================== MIGRATION FOR EXISTING DATABASES ====================
 -- If you already have the table, run this to add the new column:
 -- ALTER TABLE registration_form_fields ADD COLUMN IF NOT EXISTS show_for_category TEXT[] DEFAULT ARRAY['all']::TEXT[];
 -- UPDATE registration_form_fields SET show_for_category = ARRAY['all']::TEXT[] WHERE show_for_category IS NULL;
-
+-- Add new columns to existing registrations table:
+-- CREATE SEQUENCE IF NOT EXISTS registration_number_seq START 1;
+-- ALTER TABLE registrations ADD COLUMN IF NOT EXISTS registration_number INTEGER UNIQUE DEFAULT nextval('registration_number_seq');
+-- ALTER TABLE registrations ADD COLUMN IF NOT EXISTS user_type TEXT DEFAULT 'student' CHECK (user_type IN ('student', 'company', 'other'));
+-- ALTER TABLE registrations ADD COLUMN IF NOT EXISTS transaction_id TEXT;
+-- CREATE INDEX IF NOT EXISTS idx_registrations_registration_number ON registrations(registration_number);
+-- CREATE INDEX IF NOT EXISTS idx_registrations_user_type ON registrations(user_type);
+-- CREATE INDEX IF NOT EXISTS idx_registrations_transaction_id ON registrations(transaction_id);
+-- Add merchant_name to payment_settings:
+-- ALTER TABLE payment_settings ADD COLUMN IF NOT EXISTS merchant_name TEXT DEFAULT 'TEDx KPRCAS';
 
 -- ============================================================================
 -- DONE! REGISTRATION SYSTEM SETUP COMPLETE

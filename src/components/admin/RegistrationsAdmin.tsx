@@ -45,6 +45,7 @@ import {
   useDeleteRegistration,
   useGetRegistrationByCode,
   useSiteSetting,
+  useSendVerifiedEmail,
 } from "@/hooks/use-database";
 import type { Registration } from "@/lib/supabase";
 import { sendTicketEmail, sendConfirmationEmail } from "@/lib/email";
@@ -68,8 +69,26 @@ const RegistrationsAdmin = ({ showNotification }: Props) => {
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  
+  // Email compose state
+  const [emailMessage, setEmailMessage] = useState(`Congratulations! Your payment has been verified and your registration is now confirmed.
+
+Please find your event ticket attached. Here are the important details:
+
+📅 Event: TEDx KPRCAS
+📍 Venue: KPR College of Arts and Science, Coimbatore
+⏰ Time: To be announced
+
+Important Instructions:
+• Please arrive 30 minutes before the event starts
+• Carry a valid photo ID for verification
+• Show your registration code at the entry gate
+
+We look forward to seeing you at the event!`);
+  const [ticketUrl, setTicketUrl] = useState("");
 
   // Database hooks
   const { data: registrations = [], isLoading } = useRegistrations();
@@ -77,14 +96,14 @@ const RegistrationsAdmin = ({ showNotification }: Props) => {
   const { mutate: rejectPayment, isPending: isRejecting } = useRejectPayment();
   const { mutate: deleteRegistration } = useDeleteRegistration();
   const { mutate: getByCode, isPending: isSearchingCode } = useGetRegistrationByCode();
+  const { mutate: sendVerifiedEmail, isPending: isSendingVerifiedEmail } = useSendVerifiedEmail();
 
-  // Email settings (check if SMTP is configured)
-  const { data: smtpHost } = useSiteSetting("smtp_host");
-  const { data: smtpUser } = useSiteSetting("smtp_user");
-  const { data: smtpPass } = useSiteSetting("smtp_pass");
+  // Email settings (check if email is configured)
+  const { data: gmailEmail } = useSiteSetting("gmail_email");
+  const { data: gmailAppPassword } = useSiteSetting("gmail_app_password");
 
   // Check if email is configured
-  const isEmailConfigured = !!(smtpHost && smtpUser && smtpPass);
+  const isEmailConfigured = !!(gmailEmail && gmailAppPassword);
 
   // Search by registration code
   const handleCodeSearch = () => {
@@ -471,10 +490,10 @@ const RegistrationsAdmin = ({ showNotification }: Props) => {
 
       {/* Registration Details Dialog */}
       <Dialog
-        open={!!selectedRegistration && !showRejectDialog}
+        open={!!selectedRegistration && !showRejectDialog && !showEmailDialog}
         onOpenChange={(open) => !open && setSelectedRegistration(null)}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Registration Details</DialogTitle>
             <DialogDescription>
@@ -653,24 +672,17 @@ const RegistrationsAdmin = ({ showNotification }: Props) => {
 
               {/* Send Ticket Email for Verified Payments */}
               {selectedRegistration.payment_status === "verified" && (
-                <div className="flex gap-3 pt-4 border-t">
-                  <Button
-                    onClick={() => handleSendTicketEmail(selectedRegistration)}
-                    disabled={isSendingEmail || !isEmailConfigured}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600"
-                  >
-                    {isSendingEmail ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="w-4 h-4 mr-2" />
-                        Send Ticket Email
-                      </>
-                    )}
-                  </Button>
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setShowEmailDialog(true)}
+                      disabled={!isEmailConfigured}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Confirmation Email
+                    </Button>
+                  </div>
                   {!isEmailConfigured && (
                     <p className="text-xs text-amber-500 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
@@ -717,6 +729,123 @@ const RegistrationsAdmin = ({ showNotification }: Props) => {
               className="bg-red-500 hover:bg-red-600"
             >
               {isRejecting ? "Rejecting..." : "Reject Payment"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Compose Dialog */}
+      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-blue-500" />
+              Send Confirmation Email
+            </DialogTitle>
+            <DialogDescription>
+              Compose and send a confirmation email to the registered user
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedRegistration && (
+            <div className="space-y-4 py-4">
+              {/* Recipient Info */}
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">To:</span>
+                  <span className="font-medium">{selectedRegistration.name}</span>
+                  <span className="text-muted-foreground">({selectedRegistration.email})</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Registration ID:</span>
+                  <span className="font-mono text-tedx-red">{selectedRegistration.registration_code}</span>
+                </div>
+              </div>
+
+              {/* Ticket URL (optional) */}
+              <div className="space-y-2">
+                <Label htmlFor="ticket_url">
+                  Ticket PDF URL <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="ticket_url"
+                  placeholder="https://example.com/ticket.pdf"
+                  value={ticketUrl}
+                  onChange={(e) => setTicketUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  If you have a PDF ticket, paste the URL here. User will get a download button.
+                </p>
+              </div>
+
+              {/* Email Message */}
+              <div className="space-y-2">
+                <Label htmlFor="email_message">Email Message *</Label>
+                <textarea
+                  id="email_message"
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  className="flex min-h-[250px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder="Write your message to the attendee..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  This message will be sent to the user along with their registration code.
+                </p>
+              </div>
+
+              {/* Preview */}
+              <div className="space-y-2">
+                <Label>Preview</Label>
+                <div className="border rounded-lg p-4 bg-white text-black max-h-40 overflow-y-auto">
+                  <p className="text-sm whitespace-pre-wrap">{emailMessage}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!selectedRegistration || !emailMessage.trim()) {
+                  showNotification("error", "Please enter an email message");
+                  return;
+                }
+                
+                sendVerifiedEmail(
+                  {
+                    registration: selectedRegistration,
+                    ticketUrl: ticketUrl || undefined,
+                    customMessage: emailMessage,
+                  },
+                  {
+                    onSuccess: () => {
+                      showNotification("success", `Email sent to ${selectedRegistration.email}`);
+                      setShowEmailDialog(false);
+                      setSelectedRegistration(null);
+                    },
+                    onError: () => {
+                      showNotification("error", "Failed to send email. Check SMTP settings.");
+                    },
+                  }
+                );
+              }}
+              disabled={isSendingVerifiedEmail || !emailMessage.trim()}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              {isSendingVerifiedEmail ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Send Email
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>

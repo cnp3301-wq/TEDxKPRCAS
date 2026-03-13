@@ -159,6 +159,7 @@ export type PaymentSettings = {
   id?: string;
   qr_code_url?: string;
   upi_id?: string;
+  merchant_name?: string;
   payment_amount: number;
   payment_instructions?: string;
   is_active: boolean;
@@ -168,7 +169,9 @@ export type PaymentSettings = {
 
 export type Registration = {
   id?: string;
+  registration_number?: number; // Auto-generated unique number (1, 2, 3...)
   registration_code?: string;
+  user_type?: 'student' | 'company' | 'other';
   name: string;
   email: string;
   phone?: string;
@@ -176,6 +179,7 @@ export type Registration = {
   payment_status: 'pending' | 'submitted' | 'verified' | 'rejected';
   payment_screenshot_url?: string;
   user_upi_id?: string;
+  transaction_id?: string; // UPI Transaction ID
   payment_amount?: number;
   payment_verified_at?: string;
   payment_verified_by?: string;

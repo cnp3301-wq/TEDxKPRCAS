@@ -974,6 +974,20 @@ export function useVerifyPayment() {
   });
 }
 
+export function useSendVerifiedEmail() {
+  return useMutation({
+    mutationFn: ({ 
+      registration, 
+      ticketUrl, 
+      customMessage 
+    }: { 
+      registration: Registration; 
+      ticketUrl?: string; 
+      customMessage?: string;
+    }) => registrationService.sendVerifiedEmail(registration, ticketUrl, customMessage),
+  });
+}
+
 export function useRejectPayment() {
   const queryClient = useQueryClient();
   return useMutation({

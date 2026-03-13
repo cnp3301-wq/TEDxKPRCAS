@@ -14,6 +14,7 @@ import {
   Copy,
   Mail,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -554,7 +555,7 @@ const Register = () => {
                     </p>
                   </div>
 
-                  {/* QR Code - Uploaded by Admin */}
+                  {/* QR Code - Auto-generated or Uploaded by Admin */}
                   {paymentSettings?.qr_code_url ? (
                     <div className="flex justify-center">
                       <div className="bg-white p-4 rounded-lg">
@@ -562,6 +563,17 @@ const Register = () => {
                           src={paymentSettings.qr_code_url}
                           alt="Payment QR Code"
                           className="w-48 h-48 object-contain"
+                        />
+                      </div>
+                    </div>
+                  ) : paymentSettings?.upi_id ? (
+                    <div className="flex justify-center">
+                      <div className="bg-white p-4 rounded-lg">
+                        <QRCodeSVG
+                          value={`upi://pay?pa=${encodeURIComponent(paymentSettings.upi_id)}&pn=${encodeURIComponent(paymentSettings.merchant_name || 'TEDx')}&am=${paymentSettings.payment_amount || 0}&cu=INR`}
+                          size={192}
+                          level="M"
+                          includeMargin={false}
                         />
                       </div>
                     </div>

@@ -13,6 +13,7 @@ import {
   PaymentSettings,
   Registration,
 } from "./supabase";
+import { sendRegistrationPendingEmail, sendTicketEmail, sendCustomEmail } from "./email";
 
 // ==================== PARTICIPANTS ====================
 
@@ -793,6 +794,7 @@ async function sendToGoogleSheet(data: {
   user_type?: string;
   form_data?: Record<string, any>;
   registration_code?: string;
+  registration_number?: number;
   payment_status?: string;
   user_upi_id?: string;
   transaction_id?: string;
@@ -810,6 +812,7 @@ async function sendToGoogleSheet(data: {
     // Flatten form_data for the sheet
     const flatData: Record<string, any> = {
       timestamp: new Date().toISOString(),
+      registration_number: data.registration_number || "",
       name: data.name,
       email: data.email,
       phone: data.phone || "",
@@ -906,7 +909,9 @@ export const registrationService = {
       name: registration.name,
       email: registration.email,
       phone: registration.phone,
+      user_type: registration.user_type,
       form_data: registration.form_data,
+      registration_number: data.registration_number,
       payment_status: registration.payment_status,
       created_at: data.created_at,
     });
@@ -953,14 +958,53 @@ export const registrationService = {
       name: data.name,
       email: data.email,
       phone: data.phone,
+      user_type: data.user_type,
       form_data: data.form_data,
+      registration_number: data.registration_number,
       registration_code: registration_code,
       payment_status: "submitted",
       user_upi_id: paymentData.user_upi_id,
       transaction_id: paymentData.transaction_id || "",
     });
     
+    // AUTO-SEND: Registration pending email to user
+    sendRegistrationPendingEmail(null, {
+      to_email: data.email,
+      to_name: data.name,
+      registration_code: registration_code,
+      event_name: "TEDx KPRCAS",
+    }).then(() => {
+      console.log("✅ Registration pending email sent to:", data.email);
+    }).catch((err) => {
+      console.error("❌ Failed to send registration pending email:", err);
+    });
+    
     return data as Registration;
+  },
+
+  // Send ticket email after admin verifies payment
+  async sendVerifiedEmail(registration: Registration, ticketUrl?: string, customMessage?: string) {
+    if (customMessage) {
+      // Send custom email from admin
+      return sendCustomEmail(null, {
+        to_email: registration.email,
+        to_name: registration.name,
+        subject: `🎫 Payment Verified - TEDx KPRCAS | ${registration.registration_code}`,
+        message: customMessage,
+        registration_code: registration.registration_code,
+        ticket_url: ticketUrl,
+        event_name: "TEDx KPRCAS",
+      });
+    } else {
+      // Send default ticket email
+      return sendTicketEmail(null, {
+        to_email: registration.email,
+        to_name: registration.name,
+        registration_code: registration.registration_code || "",
+        ticket_url: ticketUrl,
+        event_name: "TEDx KPRCAS",
+      });
+    }
   },
 
   async delete(id: string) {

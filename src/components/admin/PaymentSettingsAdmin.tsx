@@ -54,6 +54,7 @@ const PaymentSettingsAdmin = ({ showNotification }: Props) => {
   useEffect(() => {
     if (paymentSettings) {
       setUpiId(paymentSettings.upi_id || "");
+      setMerchantName(paymentSettings.merchant_name || "TEDx KPRCAS");
       setPaymentAmount(paymentSettings.payment_amount?.toString() || "0");
       setPaymentInstructions(paymentSettings.payment_instructions || "");
       setQrCodeUrl(paymentSettings.qr_code_url || "");
@@ -116,6 +117,7 @@ const PaymentSettingsAdmin = ({ showNotification }: Props) => {
     updateSettings(
       {
         upi_id: upiId,
+        merchant_name: merchantName,
         payment_amount: parseFloat(paymentAmount) || 0,
         payment_instructions: paymentInstructions,
         qr_code_url: useCustomQr ? qrCodeUrl : "", // Only save URL if using custom QR
