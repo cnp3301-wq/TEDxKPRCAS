@@ -320,11 +320,11 @@ const ThemeSection = () => {
             >
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="text-center">
-                  <span className="font-heading text-9xl sm:text-[160px] md:text-[200px] text-tedx-red leading-none block">{eventDay}</span>
-                  <span className="font-heading text-7xl sm:text-8xl md:text-[120px] text-tedx-red leading-none block -mt-1">{eventMonth}</span>
+                  <span className="font-heading text-[120px] sm:text-[220px] md:text-[280px] text-tedx-red leading-none block">{eventDay}</span>
+                  <span className="font-heading text-8xl sm:text-[140px] md:text-[180px] text-tedx-red leading-none block -mt-2">{eventMonth}</span>
                 </div>
                 <div className="w-[3px] h-16 sm:h-20 md:h-24 bg-white/30 rounded-full" />
-                <div className="font-heading text-7xl sm:text-8xl md:text-[120px] text-white leading-none" style={{ writingMode: "vertical-lr" }}>
+                <div className="font-heading text-8xl sm:text-[140px] md:text-[180px] text-white leading-none" style={{ writingMode: "vertical-lr" }}>
                   {eventYear}
                 </div>
               </div>
