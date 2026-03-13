@@ -12,14 +12,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Force Inter font and remove all boldness */
+/* Force Rubik Dirt font for body content and remove all boldness */
 * {
-  font-family: "Inter", sans-serif !important;
+  font-family: "Rubik Dirt", sans-serif !important;
   font-weight: 400 !important;
 }
 
 html, body {
-  font-family: "Inter", sans-serif;
+  font-family: "Rubik Dirt", sans-serif;
   font-weight: 400;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
@@ -31,15 +31,21 @@ body::-webkit-scrollbar {
   display: none;
 }
 
-/* Override all heading and bold elements with Rubik Dirt */
-h1, h2, h3, h4, h5, h6, strong, b, 
-.font-bold, .font-semibold, .font-extrabold, .font-black,
-.font-heading, .heading {
+/* Keep headings as Rubik Dirt but maintain hierarchy */
+h1, h2, h3, h4, h5, h6 {
   font-weight: 400 !important;
   font-family: "Rubik Dirt", sans-serif !important;
   color: white !important;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+/* Body text styling */
+p, span, div, li, a {
+  font-family: "Rubik Dirt", sans-serif !important;
+  font-weight: 400 !important;
+  color: white !important;
+  font-size: 40px;
 }
 
 @layer base {
