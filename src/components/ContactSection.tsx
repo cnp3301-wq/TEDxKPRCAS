@@ -68,7 +68,8 @@ const ContactSection = () => {
                 <>
                   <motion.a
                     href={`mailto:${email}`}
-                    className="text-tedx-red font-heading text-xs sm:text-sm md:text-base lg:text-lg hover:underline block break-words normal-case"
+                    className="text-tedx-red text-xs sm:text-sm md:text-base lg:text-lg hover:underline block break-words"
+                    style={{ textTransform: "lowercase", fontFamily: "inherit" }}
                     whileHover={{ scale: 1.05 }}
                   >
                     {email.toLowerCase()}
