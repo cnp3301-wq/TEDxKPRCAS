@@ -1,5 +1,5 @@
-// Email Service using SMTP (Nodemailer) via Supabase Edge Function
-// Admin configures SMTP settings in Admin → Email tab
+// Email Service using Nodemailer via Node.js API
+// Backend: server/server.js
 
 import { supabase } from "./supabase";
 
@@ -13,7 +13,10 @@ export interface SMTPConfig {
   from_name?: string;
 }
 
-// Send email via Supabase Edge Function
+// API endpoint for email service
+const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || "http://localhost:3001";
+
+// Send email via Node.js API endpoint
 async function sendEmail(data: {
   to: string;
   subject: string;
@@ -21,14 +24,21 @@ async function sendEmail(data: {
   text?: string;
 }) {
   try {
-    const { data: response, error } = await supabase.functions.invoke("send-email", {
-      body: data,
+    const response = await fetch(`${EMAIL_API_URL}/api/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     });
 
-    if (error) throw error;
-    
-    console.log("✅ Email sent successfully:", response);
-    return { success: true, response };
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ Email sent successfully:", result);
+    return { success: true, response: result };
   } catch (error) {
     console.error("❌ Failed to send email:", error);
     return { success: false, error };
