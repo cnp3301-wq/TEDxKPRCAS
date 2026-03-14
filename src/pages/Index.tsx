@@ -12,7 +12,6 @@ import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import CursorParticles from "@/components/CursorParticles";
 import ScrollReveal from "@/components/ScrollReveal";
-import GallerySection from "@/components/GallerySection";
 import SponsorsSection from "@/components/SponsorsSection";
 import ThemeSection from "@/components/ThemeSection";
 
@@ -50,9 +49,6 @@ const Index = () => {
       </ScrollReveal>
       <ScrollReveal direction="up" delay={0.1}>
         <VenueSection />
-      </ScrollReveal>
-      <ScrollReveal direction="up" delay={0.1}>
-        <GallerySection />
       </ScrollReveal>
       <ScrollReveal direction="up" delay={0.1}>
         <SponsorsSection />
