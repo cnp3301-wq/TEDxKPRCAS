@@ -15,10 +15,23 @@ export interface SMTPConfig {
 
 // API endpoint for email service
 // Uses local Node.js server in development, Vercel API route in production
-const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-    ? "http://localhost:3001"
-    : "/api");
+let EMAIL_API_BASE = import.meta.env.VITE_EMAIL_API_URL;
+
+// Auto-detect environment if not explicitly set
+if (!EMAIL_API_BASE) {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    EMAIL_API_BASE = 'http://localhost:3001'; // Local development server
+  } else {
+    EMAIL_API_BASE = ''; // Production: use relative path
+  }
+}
+
+const getEmailEndpoint = () => {
+  if (EMAIL_API_BASE) {
+    return `${EMAIL_API_BASE}/api/send-email`;
+  }
+  return '/api/send-email'; // Production relative path
+};
 
 // Send email via Node.js API endpoint or Vercel API route
 async function sendEmail(data: {
@@ -28,7 +41,10 @@ async function sendEmail(data: {
   text?: string;
 }) {
   try {
-    const response = await fetch(`${EMAIL_API_URL}/send-email`, {
+    const endpoint = getEmailEndpoint();
+    console.log(`📧 Sending to: ${endpoint}`);
+
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
