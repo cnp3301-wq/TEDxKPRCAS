@@ -209,6 +209,10 @@ const Register = () => {
       setErrors({ upiId: "Please enter your UPI ID" });
       return;
     }
+    if (!transactionId.trim()) {
+      setErrors({ transactionId: "Please enter your transaction ID" });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
