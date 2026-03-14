@@ -265,6 +265,150 @@ const GlobeAnimation = () => {
   );
 };
 
+/* ── DNA Helix Animation Component (About TEDx) ── */
+const DNAAnimation = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef<number>(0);
+  const isVisibleRef = useRef(true);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (!isVisibleRef.current) {
+      animRef.current = requestAnimationFrame(draw);
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    const time = performance.now() * 0.0005;
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const cy = h / 2;
+    const amp = Math.min(w, h) * 0.12;
+    const length = Math.min(w, h) * 0.6;
+
+    // Background glow
+    const bgGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.6);
+    bgGlow.addColorStop(0, "rgba(220,30,30,0.05)");
+    bgGlow.addColorStop(1, "rgba(220,30,30,0)");
+    ctx.fillStyle = bgGlow;
+    ctx.fillRect(0, 0, w, h);
+
+    const strand1Points: [number, number][] = [];
+    const strand2Points: [number, number][] = [];
+
+    // Draw DNA strands
+    for (let i = 0; i < 100; i++) {
+      const t = i / 100;
+      const y = cy - length / 2 + t * length;
+      const angle = t * Math.PI * 6 + time;
+
+      const x1 = cx + Math.cos(angle) * amp;
+      strand1Points.push([x1, y]);
+
+      const x2 = cx + Math.cos(angle + Math.PI) * amp;
+      strand2Points.push([x2, y]);
+    }
+
+    // Draw strands
+    [strand1Points, strand2Points].forEach((points) => {
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.8)";
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      ctx.beginPath();
+      ctx.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i][0], points[i][1]);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.3)";
+      ctx.lineWidth = 8;
+      ctx.stroke();
+    });
+
+    // Draw connecting bridges
+    for (let i = 0; i < strand1Points.length; i += 3) {
+      const x1 = strand1Points[i][0];
+      const y1 = strand1Points[i][1];
+      const x2 = strand2Points[i][0];
+      const y2 = strand2Points[i][1];
+
+      const bridgeGrad = ctx.createLinearGradient(x1, y1, x2, y2);
+      bridgeGrad.addColorStop(0, "rgba(239, 68, 68, 0.6)");
+      bridgeGrad.addColorStop(0.5, "rgba(239, 68, 68, 0.8)");
+      bridgeGrad.addColorStop(1, "rgba(239, 68, 68, 0.6)");
+
+      ctx.strokeStyle = bridgeGrad;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    // Draw nucleotide nodes
+    [...strand1Points, ...strand2Points].forEach((point, idx) => {
+      if (idx % 4 === 0) {
+        const radius = 3;
+        const nodeGlow = ctx.createRadialGradient(point[0], point[1], 0, point[0], point[1], radius * 2);
+        nodeGlow.addColorStop(0, "rgba(239, 68, 68, 0.8)");
+        nodeGlow.addColorStop(1, "rgba(239, 68, 68, 0)");
+        ctx.fillStyle = nodeGlow;
+        ctx.beginPath();
+        ctx.arc(point[0], point[1], radius * 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+        ctx.beginPath();
+        ctx.arc(point[0], point[1], radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    animRef.current = requestAnimationFrame(draw);
+  }, []);
+
+  useEffect(() => {
+    animRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [draw]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+      },
+      { threshold: 0.1 }
+    );
+
+    if (canvasRef.current) {
+      observer.observe(canvasRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="relative w-full h-[260px] sm:h-[300px] md:h-[450px] lg:h-[550px] xl:h-[620px] flex items-center justify-center">
+      <canvas ref={canvasRef} className="w-full h-full" />
+    </div>
+  );
+};
+
 const AboutSection = () => {
   const { data: aboutData, isLoading, isError, error } = useAboutInfo();
   const mobile = useIsMobile();
@@ -351,7 +495,7 @@ const AboutSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <GlobeAnimation />
+            <DNAAnimation />
           </motion.div>
 
           <motion.div
