@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Lock } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -114,14 +114,6 @@ const Navbar = () => {
             className="md:hidden bg-background/95 backdrop-blur-md border-b border-border px-4 py-2 pb-4 max-h-[calc(100vh-3.5rem)] overflow-y-auto safe-area-bottom"
         >
           {navItems.map((item) => renderNavLink(item, true))}
-          <Link
-            to="/admin"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 py-3 text-muted-foreground hover:text-primary transition-colors active:text-primary"
-          >
-            <Lock className="w-4 h-4" />
-            Admin
-          </Link>
           <Link
             to="/register"
             onClick={() => setOpen(false)}

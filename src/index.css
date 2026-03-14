@@ -194,6 +194,13 @@ h1, h2, h3, h4, h5, h6, .font-heading, .heading {
     -webkit-text-stroke: 3px #d80027;
   }
 
+  .about-heading-hero {
+    font-size: clamp(96px, 12vw, 200px) !important;
+    line-height: 1.05 !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em !important;
+  }
+
   .marquee {
     animation: marquee 20s linear infinite;
     will-change: transform;
