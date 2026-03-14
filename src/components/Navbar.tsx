@@ -17,14 +17,13 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Lock body scroll when mobile menu is open
+  // Handle hash link clicks – if not on home page, navigate to "/" first then scroll
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
+    const onScroll = () => {
+      if (open) setOpen(false);
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, [open]);
 
   // Handle hash link clicks – if not on home page, navigate to "/" first then scroll
@@ -51,8 +50,8 @@ const Navbar = () => {
 
   const renderNavLink = (item: { label: string; href: string }, mobile = false) => {
     const className = mobile
-      ? "block py-3.5 text-lg text-muted-foreground hover:text-foreground transition-colors active:text-foreground"
-      : "text-sm text-muted-foreground hover:text-foreground transition-colors lg:text-base";
+      ? "block text-sm sm:text-base text-foreground hover:text-white transition-colors"
+      : "text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors lg:text-base";
 
     if (item.href.startsWith("/")) {
       return (
@@ -80,26 +79,30 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border safe-area-top">
-      <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4">
-        <Link to="/" className="flex items-center">
-          <img src="/logo.png" alt="TEDx KPRCAS" className="h-8 sm:h-10 w-auto" />
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="w-full flex items-center justify-between h-12 sm:h-14 md:h-16 px-2 sm:px-3 md:px-4 max-w-full">
+        <Link to="/" className="flex items-center flex-shrink-0 gap-1">
+          <img src="/logo.png" alt="TEDx" className="h-5 sm:h-6 md:h-8 w-auto" />
+          <span className="hidden sm:inline text-xs md:text-sm font-semibold">KPRCAS</span>
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-4 lg:gap-6">
+        <div className="hidden lg:flex items-center gap-3 xl:gap-6">
           {navItems.map((item) => renderNavLink(item))}
+        </div>
+
+        <div className="hidden md:flex items-center gap-2 lg:gap-3">
           <Link
             to="/register"
-            className="bg-tedx-red text-foreground font-heading text-xs px-4 lg:px-5 py-2 rounded hover:bg-tedx-dark-red transition-colors whitespace-nowrap"
+            className="bg-tedx-red text-white font-heading text-xs px-3 md:px-4 py-1.5 md:py-2 rounded hover:bg-red-700 transition-colors whitespace-nowrap"
           >
-            Register
+            REGISTER
           </Link>
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden text-foreground p-2 -mr-1 active:opacity-70" onClick={() => setOpen(!open)}>
-          {open ? <X size={24} /> : <Menu size={24} />}
+        <button className="md:hidden text-foreground p-1 flex-shrink-0" onClick={() => setOpen(!open)}>
+          {open ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
@@ -107,25 +110,31 @@ const Navbar = () => {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 md:hidden bg-background/95 backdrop-blur-md"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className="md:hidden bg-background border-b border-border"
             onClick={() => setOpen(false)}
           >
             <div
-              className="pt-16 px-4 pb-6 max-h-full overflow-y-auto border-b border-border shadow-lg"
+              className="px-2 sm:px-3 py-2 flex flex-col gap-0.5 divide-y divide-border/50"
               onClick={(e) => e.stopPropagation()}
             >
-              {navItems.map((item) => renderNavLink(item, true))}
-              <Link
-                to="/register"
-                onClick={() => setOpen(false)}
-                className="block mt-3 bg-tedx-red text-foreground font-heading text-sm px-5 py-3.5 rounded text-center active:bg-tedx-dark-red"
-              >
-                Register
-              </Link>
+              {navItems.map((item) => (
+                <div key={item.label} className="py-2">
+                  {renderNavLink(item, true)}
+                </div>
+              ))}
+              <div className="pt-2">
+                <Link
+                  to="/register"
+                  onClick={() => setOpen(false)}
+                  className="block w-full bg-tedx-red text-white text-center font-heading text-xs px-3 py-2 rounded hover:bg-red-700"
+                >
+                  REGISTER
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}
