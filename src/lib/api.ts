@@ -9,6 +9,7 @@ import {
   GalleryImage,
   TeamMember,
   Sponsor,
+  VenuePartner,
   RegistrationFormField,
   PaymentSettings,
   Registration,
@@ -706,6 +707,49 @@ export const sponsorService = {
       .eq("id", id);
 
     if (error) throw error;
+  },
+};
+
+// ==================== VENUE PARTNERS ====================
+
+export const venuePartnerService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from("venue_partners")
+      .select("*")
+      .order("order", { ascending: true });
+
+    if (error) throw error;
+    return data as VenuePartner[];
+  },
+
+  async create(partner: Omit<VenuePartner, "id" | "created_at" | "updated_at">) {
+    const { data, error } = await supabase
+      .from("venue_partners")
+      .insert([partner])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as VenuePartner;
+  },
+
+  async update(id: string, partner: Partial<VenuePartner>) {
+    const { data, error } = await supabase
+      .from("venue_partners")
+      .update(partner)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as VenuePartner;
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase.from("venue_partners").delete().eq("id", id);
+    if (error) throw error;
+    return true;
   },
 };
 

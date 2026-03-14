@@ -55,6 +55,10 @@ import {
   useCreateSponsor,
   useUpdateSponsor,
   useDeleteSponsor,
+  useVenuePartners,
+  useCreateVenuePartner,
+  useUpdateVenuePartner,
+  useDeleteVenuePartner,
   useSiteSetting,
   useUpdateSiteSetting,
   useDeleteSiteSetting,
@@ -74,7 +78,7 @@ type Participant = {
 
 
 const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
-  const [tab, setTab] = useState<"participants" | "speakers" | "certificates" | "about" | "contact" | "gallery" | "team" | "sponsors" | "registrations" | "form-fields" | "payment-settings" | "email-settings" | "theme-stats">("registrations");
+  const [tab, setTab] = useState<"participants" | "speakers" | "certificates" | "about" | "contact" | "gallery" | "team" | "sponsors" | "venue" | "registrations" | "form-fields" | "payment-settings" | "email-settings" | "theme-stats">("registrations");
 
   // Toast/Notification state
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -121,6 +125,12 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
   const { mutate: createSponsor } = useCreateSponsor();
   const { mutate: updateSponsor } = useUpdateSponsor();
   const { mutate: deleteSponsor } = useDeleteSponsor();
+
+  // Database hooks for venue partners
+  const { data: venuePartners = [], isLoading: venueLoading } = useVenuePartners();
+  const { mutate: createVenuePartner } = useCreateVenuePartner();
+  const { mutate: updateVenuePartner } = useUpdateVenuePartner();
+  const { mutate: deleteVenuePartner } = useDeleteVenuePartner();
 
   // Certificate management state
   const [showCertificateDesigner, setShowCertificateDesigner] = useState(false);
@@ -231,6 +241,24 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
   const [showSponsorForm, setShowSponsorForm] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<any>(null);
   const [sponsorFormData, setSponsorFormData] = useState({ name: "", logo: "" });
+
+  // Venue partners UI state
+  const [showVenueForm, setShowVenueForm] = useState(false);
+  const [editingVenue, setEditingVenue] = useState<any>(null);
+  const [venueFormData, setVenueFormData] = useState({
+    title: "",
+    partner_label: "Our Venue Partner",
+    subtitle: "",
+    event_date: "",
+    description: "",
+    hero_image: "",
+    logo: "",
+    thumb_one: "",
+    thumb_two: "",
+    cta_text: "Get Directions",
+    cta_url: "",
+    address: "",
+  });
 
   // Certificate & Import state
   const [showCertificatePreview, setShowCertificatePreview] = useState(false);
@@ -644,6 +672,103 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
     reader.readAsDataURL(file);
   };
 
+  // Venue partner functions
+  const addVenueItem = () => {
+    setEditingVenue(null);
+    setVenueFormData({
+      title: "",
+      partner_label: "Our Venue Partner",
+      subtitle: "",
+      event_date: "",
+      description: "",
+      hero_image: "",
+      logo: "",
+      thumb_one: "",
+      thumb_two: "",
+      cta_text: "Get Directions",
+      cta_url: "",
+      address: "",
+    });
+    setShowVenueForm(true);
+  };
+
+  const editVenueItem = (partner: any) => {
+    setEditingVenue(partner);
+    setVenueFormData({
+      title: partner.title || "",
+      partner_label: partner.partner_label || "Our Venue Partner",
+      subtitle: partner.subtitle || "",
+      event_date: partner.event_date || "",
+      description: partner.description || "",
+      hero_image: partner.hero_image || "",
+      logo: partner.logo || "",
+      thumb_one: partner.thumb_one || "",
+      thumb_two: partner.thumb_two || "",
+      cta_text: partner.cta_text || "Get Directions",
+      cta_url: partner.cta_url || "",
+      address: partner.address || "",
+    });
+    setShowVenueForm(true);
+  };
+
+  const saveVenueItem = () => {
+    if (!venueFormData.title || !venueFormData.hero_image) {
+      showNotification("error", "Title and hero image are required");
+      return;
+    }
+
+    if (editingVenue && editingVenue.id) {
+      updateVenuePartner(
+        {
+          id: editingVenue.id,
+          data: { ...venueFormData },
+        },
+        {
+          onSuccess: () => {
+            showNotification("success", "Venue partner updated!");
+            setShowVenueForm(false);
+          },
+          onError: (error) => showNotification("error", `Failed: ${error.message}`),
+        }
+      );
+    } else {
+      createVenuePartner(
+        {
+          ...venueFormData,
+          order: venuePartners.length,
+          is_active: true,
+        },
+        {
+          onSuccess: () => {
+            showNotification("success", "Venue partner added!");
+            setShowVenueForm(false);
+          },
+          onError: (error) => showNotification("error", `Failed: ${error.message}`),
+        }
+      );
+    }
+  };
+
+  const handleDeleteVenueItem = (id: string) => {
+    deleteVenuePartner(id, {
+      onSuccess: () => showNotification("success", "Venue partner deleted!"),
+      onError: (error) => showNotification("error", `Failed: ${error.message}`),
+    });
+  };
+
+  const handleVenueImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    key: "hero_image" | "logo" | "thumb_one" | "thumb_two"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setVenueFormData((prev) => ({ ...prev, [key]: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const hasActiveFilters = searchQuery || dateFrom || dateTo;
 
   return (
@@ -744,6 +869,7 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
             { id: "gallery", label: "Gallery", icon: Image },
             { id: "team", label: "Team", icon: UserPlus },
             { id: "sponsors", label: "Sponsors", icon: Image },
+            { id: "venue", label: "Venue", icon: MapPin },
           ].map((item) => {
             const Icon = item.icon;
             return (
@@ -2201,6 +2327,276 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
                             </button>
                             <button
                               onClick={() => handleDeleteSponsorItem(sponsor.id)}
+                              className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-600 text-xs py-1.5 rounded-lg flex items-center justify-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* ==================== VENUE PARTNER TAB ==================== */}
+          {tab === "venue" && (
+            <motion.div key="venue" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <motion.div className="border border-border rounded-2xl p-8 bg-card/60 backdrop-blur-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="font-heading text-2xl">Venue Partners</h2>
+                  <button
+                    onClick={addVenueItem}
+                    className="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-lg flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Venue
+                  </button>
+                </div>
+
+                {/* Venue Form Dialog */}
+                <Dialog open={showVenueForm} onOpenChange={setShowVenueForm}>
+                  <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>{editingVenue ? "Edit Venue Partner" : "Add Venue Partner"}</DialogTitle>
+                      <DialogDescription>Add venue hero, logo, thumbnails and CTA.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm mb-2">Hero Image *</label>
+                        {venueFormData.hero_image ? (
+                          <div className="relative">
+                            <img
+                              src={venueFormData.hero_image}
+                              alt="Hero"
+                              className="w-full h-48 object-cover rounded-lg border border-border"
+                            />
+                            <button
+                              onClick={() => setVenueFormData((prev) => ({ ...prev, hero_image: "" }))}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-6 hover:border-primary/50 transition-colors">
+                            <Upload className="w-8 h-8 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Click to upload hero image</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleVenueImageUpload(e, "hero_image")}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">Or paste image URL</p>
+                        <input
+                          type="url"
+                          value={venueFormData.hero_image}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, hero_image: e.target.value }))}
+                          placeholder="https://example.com/hero.jpg"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2 mt-1 text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm mb-2">Logo</label>
+                        <input
+                          type="url"
+                          value={venueFormData.logo}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, logo: e.target.value }))}
+                          placeholder="https://example.com/logo.png"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm mb-2">Partner Label</label>
+                        <input
+                          type="text"
+                          value={venueFormData.partner_label}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, partner_label: e.target.value }))}
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm mb-2">Title *</label>
+                        <input
+                          type="text"
+                          value={venueFormData.title}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, title: e.target.value }))}
+                          placeholder="The Pavilion by Quorum, Lower Parel, Mumbai."
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-3"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm mb-2">Subtitle / Location</label>
+                        <input
+                          type="text"
+                          value={venueFormData.subtitle}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
+                          placeholder="Lower Parel, Mumbai"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-2">Event Date</label>
+                        <input
+                          type="text"
+                          value={venueFormData.event_date}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, event_date: e.target.value }))}
+                          placeholder="8th November, 2025"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm mb-2">Address / Map label</label>
+                        <input
+                          type="text"
+                          value={venueFormData.address}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, address: e.target.value }))}
+                          placeholder="Full address shown near CTA"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm mb-2">Description</label>
+                        <textarea
+                          value={venueFormData.description}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, description: e.target.value }))}
+                          placeholder="Surrounded by natural light and modern architectural elements..."
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-3 h-28 resize-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm mb-2">Thumbnail 1</label>
+                        <input
+                          type="url"
+                          value={venueFormData.thumb_one}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, thumb_one: e.target.value }))}
+                          placeholder="https://example.com/thumb1.jpg"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleVenueImageUpload(e, "thumb_one")}
+                          className="mt-2 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-2">Thumbnail 2</label>
+                        <input
+                          type="url"
+                          value={venueFormData.thumb_two}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, thumb_two: e.target.value }))}
+                          placeholder="https://example.com/thumb2.jpg"
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleVenueImageUpload(e, "thumb_two")}
+                          className="mt-2 text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm mb-2">CTA Text</label>
+                        <input
+                          type="text"
+                          value={venueFormData.cta_text}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, cta_text: e.target.value }))}
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-2">CTA URL</label>
+                        <input
+                          type="url"
+                          value={venueFormData.cta_url}
+                          onChange={(e) => setVenueFormData((prev) => ({ ...prev, cta_url: e.target.value }))}
+                          placeholder="https://maps.google.com/..."
+                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2 flex gap-3 pt-2">
+                        <button
+                          onClick={saveVenueItem}
+                          className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-600 py-2.5 rounded-lg"
+                        >
+                          {editingVenue ? "Update" : "Add"}
+                        </button>
+                        <button
+                          onClick={() => setShowVenueForm(false)}
+                          className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground py-2.5 rounded-lg"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Venue list */}
+                {venueLoading ? (
+                  <div className="text-center py-12">
+                    <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading venues...</p>
+                  </div>
+                ) : venuePartners.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Image className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No venue partners yet. Add your first one!</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {venuePartners.map((partner: any) => (
+                      <motion.div
+                        key={partner.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="border border-border rounded-xl overflow-hidden bg-card hover:border-primary/30 transition-colors group"
+                      >
+                        {partner.hero_image && (
+                          <div className="relative h-36 overflow-hidden">
+                            <img
+                              src={partner.hero_image}
+                              alt={partner.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        )}
+                        <div className="p-4 space-y-1">
+                          <p className="text-xs text-muted-foreground uppercase tracking-[0.2em]">
+                            {partner.partner_label || "Venue Partner"}
+                          </p>
+                          <h3 className="text-sm font-semibold truncate">{partner.title}</h3>
+                          {partner.event_date && <p className="text-xs text-primary">{partner.event_date}</p>}
+                          {partner.subtitle && (
+                            <p className="text-xs text-muted-foreground truncate">{partner.subtitle}</p>
+                          )}
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => editVenueItem(partner)}
+                              className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 text-xs py-1.5 rounded-lg flex items-center justify-center gap-1"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteVenueItem(partner.id)}
                               className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-600 text-xs py-1.5 rounded-lg flex items-center justify-center gap-1"
                             >
                               <Trash2 className="w-3 h-3" />

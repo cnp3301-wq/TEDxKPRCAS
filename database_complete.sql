@@ -259,6 +259,48 @@ CREATE POLICY "sponsors_delete" ON sponsors FOR DELETE USING (true);
 ALTER PUBLICATION supabase_realtime ADD TABLE sponsors;
 
 
+-- ==================== VENUE PARTNERS TABLE ====================
+-- Stores venue partner details, images and CTA link
+DROP TABLE IF EXISTS venue_partners CASCADE;
+
+CREATE TABLE venue_partners (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,                    -- e.g. "The Pavilion by Quorum"
+  partner_label TEXT DEFAULT 'Our Venue Partner',
+  subtitle TEXT,                          -- e.g. location line
+  event_date TEXT,                        -- e.g. "8th November, 2025"
+  description TEXT,
+  hero_image TEXT NOT NULL DEFAULT '',    -- large background image
+  logo TEXT,                              -- partner logo
+  thumb_one TEXT,                         -- supporting image 1
+  thumb_two TEXT,                         -- supporting image 2
+  cta_text TEXT DEFAULT 'Get Directions',
+  cta_url TEXT,
+  address TEXT,
+  "order" INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_venue_partners_order ON venue_partners("order");
+CREATE INDEX IF NOT EXISTS idx_venue_partners_is_active ON venue_partners(is_active);
+CREATE INDEX IF NOT EXISTS idx_venue_partners_created_at ON venue_partners(created_at);
+
+-- RLS
+ALTER TABLE venue_partners ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "venue_partners_select" ON venue_partners FOR SELECT USING (true);
+CREATE POLICY "venue_partners_insert" ON venue_partners FOR INSERT WITH CHECK (true);
+CREATE POLICY "venue_partners_update" ON venue_partners FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "venue_partners_delete" ON venue_partners FOR DELETE USING (true);
+
+-- Enable realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE venue_partners;
+
+
 -- ==================== THEME STATS TABLE ====================
 -- Stores theme featured content and statistics
 DROP TABLE IF EXISTS theme_stats CASCADE;

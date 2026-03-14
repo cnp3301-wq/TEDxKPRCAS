@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
 import SpeakersSection from "@/components/SpeakersSection";
+import VenueSection from "@/components/VenueSection";
 import StatsSection from "@/components/StatsSection";
 import CountdownSection from "@/components/CountdownSection";
 import ContactSection from "@/components/ContactSection";
@@ -46,6 +47,9 @@ const Index = () => {
       </ScrollReveal>
       <ScrollReveal direction="up" delay={0.1}>
         <SpeakersSection />
+      </ScrollReveal>
+      <ScrollReveal direction="up" delay={0.1}>
+        <VenueSection />
       </ScrollReveal>
       <ScrollReveal direction="up" delay={0.1}>
         <GallerySection />

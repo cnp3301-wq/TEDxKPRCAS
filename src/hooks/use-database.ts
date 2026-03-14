@@ -11,6 +11,7 @@ import {
   galleryService,
   teamService,
   sponsorService,
+  venuePartnerService,
   siteSettingsService,
   registrationFormFieldService,
   paymentSettingsService,
@@ -27,6 +28,7 @@ import type {
   GalleryImage,
   TeamMember,
   Sponsor,
+  VenuePartner,
   RegistrationFormField,
   PaymentSettings,
   Registration,
@@ -668,6 +670,95 @@ export function useDeleteSponsor() {
     },
     onError: (error) => {
       console.error("❌ Failed to delete sponsor:", error);
+    },
+  });
+}
+
+// ==================== VENUE PARTNERS HOOKS ====================
+
+export function useVenuePartners() {
+  const queryClient = useQueryClient();
+  const subscriptionRef = useRef<any>(null);
+
+  const query = useQuery({
+    queryKey: ["venue_partners"],
+    queryFn: () => venuePartnerService.getAll(),
+    staleTime: 0,
+  });
+
+  useEffect(() => {
+    if (subscriptionRef.current) return;
+
+    console.log(" Setting up venue_partners real-time subscription...");
+    subscriptionRef.current = supabase
+      .channel("venue-partners-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "venue_partners",
+        },
+        (payload: any) => {
+          console.log(" Venue partners updated from database:", payload);
+          queryClient.invalidateQueries({ queryKey: ["venue_partners"] });
+        }
+      )
+      .subscribe((status: string) => {
+        console.log(" Venue partners subscription status:", status);
+      });
+
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
+    };
+  }, [queryClient]);
+
+  return query;
+}
+
+export function useCreateVenuePartner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Omit<VenuePartner, "id" | "created_at" | "updated_at">) =>
+      venuePartnerService.create(data),
+    onSuccess: () => {
+      console.log(" Venue partner created successfully");
+      queryClient.invalidateQueries({ queryKey: ["venue_partners"] });
+    },
+    onError: (error) => {
+      console.error(" Failed to create venue partner:", error);
+    },
+  });
+}
+
+export function useUpdateVenuePartner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<VenuePartner> }) =>
+      venuePartnerService.update(id, data),
+    onSuccess: () => {
+      console.log(" Venue partner updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["venue_partners"] });
+    },
+    onError: (error) => {
+      console.error(" Failed to update venue partner:", error);
+    },
+  });
+}
+
+export function useDeleteVenuePartner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => venuePartnerService.delete(id),
+    onSuccess: () => {
+      console.log(" Venue partner deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["venue_partners"] });
+    },
+    onError: (error) => {
+      console.error(" Failed to delete venue partner:", error);
     },
   });
 }

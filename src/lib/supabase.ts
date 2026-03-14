@@ -138,6 +138,26 @@ export type Sponsor = {
   updated_at?: string;
 };
 
+export type VenuePartner = {
+  id?: string;
+  title: string;
+  partner_label?: string;
+  subtitle?: string;
+  event_date?: string;
+  description?: string;
+  hero_image: string;
+  logo?: string;
+  thumb_one?: string;
+  thumb_two?: string;
+  cta_text?: string;
+  cta_url?: string;
+  address?: string;
+  order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type SiteSetting = {
   id?: string;
   key: string;
