@@ -709,10 +709,12 @@ const Register = () => {
 
                   {/* Transaction ID Input */}
                   <div className="space-y-2">
-                    <Label htmlFor="transaction-id">Transaction ID / Payment Reference (Optional)</Label>
+                    <Label htmlFor="transaction-id">
+                      Transaction ID / Payment Reference <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="transaction-id"
-                      placeholder="Enter UPI transaction ID if available"
+                      placeholder="Enter UPI transaction ID"
                       value={transactionId}
                       onChange={(e) => setTransactionId(e.target.value)}
                     />
