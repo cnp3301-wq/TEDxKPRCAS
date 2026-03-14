@@ -2,8 +2,84 @@ import { motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
 import { useSpeakers } from "@/hooks/use-database";
-import { Carousel, SpeakerCard } from "./ui/speakers-carousel";
-import type { iSpeaker } from "./ui/speakers-carousel";
+
+interface iSpeaker {
+  id: string;
+  name: string;
+  role: string;
+  image: string;
+  bio?: string;
+}
+
+// Color gradients for speaker cards
+const gradients = [
+  "from-purple-500 to-purple-700",
+  "from-yellow-500 to-yellow-700",
+  "from-lime-400 to-lime-600",
+  "from-orange-500 to-orange-700",
+  "from-blue-500 to-blue-700",
+  "from-pink-500 to-pink-700",
+];
+
+const SpeakerCardNew = ({ speaker, index }: { speaker: iSpeaker; index: number }) => {
+  const gradientClass = gradients[index % gradients.length];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+      className="group cursor-pointer"
+    >
+      <div className={`bg-gradient-to-b ${gradientClass} rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full relative`}>
+        {/* Image Container with Wavy Bottom */}
+        <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
+          {speaker.image ? (
+            <img
+              src={speaker.image}
+              alt={speaker.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center">
+              <span className="text-6xl text-white/40">{speaker.name.charAt(0)}</span>
+            </div>
+          )}
+
+          {/* Wavy Bottom Edge SVG */}
+          <svg
+            className="absolute bottom-0 left-0 w-full"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+            style={{ height: "40px", transform: "translateY(1px)" }}
+          >
+            <path
+              d="M0,50 Q150,0 300,50 T600,50 T900,50 T1200,50 L1200,120 L0,120 Z"
+              fill="white"
+              style={{ fill: "rgb(17, 24, 39)" }} // bg-gray-900 color
+            />
+          </svg>
+        </div>
+
+        {/* Text Content */}
+        <div className="relative px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
+          <h3 className="font-bold text-lg sm:text-xl text-gray-900 uppercase tracking-wider mb-1">
+            {speaker.name}
+          </h3>
+          <p className="text-gray-600 text-sm sm:text-base font-medium">
+            {speaker.role}
+          </p>
+          {speaker.bio && (
+            <p className="text-gray-600 text-xs sm:text-sm mt-2 line-clamp-2">
+              {speaker.bio}
+            </p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const SpeakersSection = () => {
   const { data: speakers = [], isLoading, isError, error } = useSpeakers();
@@ -135,9 +211,9 @@ const SpeakersSection = () => {
             transition={{ duration: 0.8 }}
             className="w-full"
           >
-            <Carousel
-              items={speakers.map((speaker, index) => (
-                <SpeakerCard
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
+              {speakers.map((speaker, index) => (
+                <SpeakerCardNew
                   key={speaker.id}
                   speaker={{
                     id: speaker.id,
@@ -145,11 +221,11 @@ const SpeakersSection = () => {
                     role: speaker.role,
                     image: speaker.image || "",
                     bio: speaker.bio || "",
-                  } as iSpeaker}
+                  }}
                   index={index}
                 />
               ))}
-            />
+            </div>
           </motion.div>
         )}
       </div>
