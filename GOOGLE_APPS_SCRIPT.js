@@ -19,6 +19,7 @@ const SHEET_ID = ""; // Replace with your Google Sheet ID
 const SHEET_NAME = ""; // Name of the sheet tab
 const REQUIRED_HEADERS = [
   "timestamp",
+  "iso_timestamp",
   "registration_number",
   "name",
   "email",
@@ -109,6 +110,7 @@ function createHeaders(sheet) {
   try {
     const headers = [
       "timestamp",
+      "iso_timestamp",
       "registration_number",
       "name",
       "email",

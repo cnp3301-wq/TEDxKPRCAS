@@ -884,9 +884,16 @@ async function sendToGoogleSheet(data: {
       return;
     }
 
+    // Format date and time for better readability in Google Sheets
+    const now = new Date();
+    const dateString = now.toLocaleDateString('en-IN'); // DD/MM/YYYY
+    const timeString = now.toLocaleTimeString('en-IN'); // HH:MM:SS
+    const isoTimestamp = now.toISOString(); // Keep for reference
+
     // Flatten form_data for the sheet
     const flatData: Record<string, any> = {
-      timestamp: new Date().toISOString(),
+      timestamp: `${dateString} ${timeString}`, // Human-readable format
+      iso_timestamp: isoTimestamp, // ISO format for accuracy
       registration_number: data.registration_number || "",
       name: data.name,
       email: data.email,
