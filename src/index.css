@@ -165,6 +165,35 @@ h1, h2, h3, h4, h5, h6, .font-heading, .heading {
     color: #000 !important;
   }
 
+  /* Date card typography */
+  .date-block-day {
+    font-size: clamp(190px, 46vw, 360px) !important;
+    line-height: 0.85 !important;
+    letter-spacing: 0.08em;
+    font-weight: 900 !important;
+    color: #fff !important;
+    -webkit-text-stroke: 3px #d80027;
+  }
+
+  .date-block-month {
+    font-size: clamp(150px, 36vw, 300px) !important;
+    line-height: 0.85 !important;
+    letter-spacing: 0.08em;
+    font-weight: 900 !important;
+    color: #fff !important;
+    -webkit-text-stroke: 3px #d80027;
+  }
+
+  .date-block-year {
+    font-size: clamp(150px, 36vw, 300px) !important;
+    line-height: 0.85 !important;
+    letter-spacing: 0.1em;
+    font-weight: 900 !important;
+    writing-mode: vertical-lr;
+    color: #fff !important;
+    -webkit-text-stroke: 3px #d80027;
+  }
+
   .marquee {
     animation: marquee 20s linear infinite;
     will-change: transform;

@@ -7,7 +7,7 @@ const ContactSection = () => {
   const { data: contactData, isLoading, isError, error } = useContactInfo();
 
   // Use database email if available, otherwise show default
-  const email = contactData?.email || "tedxkprcas@gmail.com";
+  const email = contactData?.email || "tedxkprcas@kprcas.ac.in";
 
   return (
     <section id="contact" className="py-10 sm:py-14 md:py-20 lg:py-24 bg-secondary/30 relative overflow-hidden">
