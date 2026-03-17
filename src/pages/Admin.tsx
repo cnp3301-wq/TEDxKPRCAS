@@ -558,8 +558,13 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
           onSuccess: () => {
             showNotification("success", "Team member updated!");
             setShowTeamForm(false);
+            setEditingTeamMember(null);
+            setTeamFormData({ name: "", role: "", photo: "", description: "" });
           },
-          onError: (error) => showNotification("error", `Failed: ${error.message}`),
+          onError: (error) => {
+            console.error("Update failed:", error);
+            showNotification("error", `Failed to update: ${error.message}`);
+          },
         }
       );
     } else {
@@ -576,8 +581,15 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
           onSuccess: () => {
             showNotification("success", "Team member added!");
             setShowTeamForm(false);
+            setEditingTeamMember(null);
+            setTeamFormData({ name: "", role: "", photo: "", description: "" });
           },
-          onError: (error) => showNotification("error", `Failed: ${error.message}`),
+          onError: (error) => {
+            console.error("Create failed:", error);
+            showNotification("error", `Failed to add: ${error.message}`);
+          },
+        }
+      );
         }
       );
     }
@@ -2037,7 +2049,16 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
                 </div>
 
                 {/* Team Form Dialog */}
-                <Dialog open={showTeamForm} onOpenChange={setShowTeamForm}>
+                <Dialog
+                  open={showTeamForm}
+                  onOpenChange={(open) => {
+                    setShowTeamForm(open);
+                    if (!open) {
+                      setEditingTeamMember(null);
+                      setTeamFormData({ name: "", role: "", photo: "", description: "" });
+                    }
+                  }}
+                >
                   <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>{editingTeamMember ? "Edit Team Member" : "Add Team Member"}</DialogTitle>
@@ -2123,7 +2144,11 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
                           {editingTeamMember ? "Update" : "Add"}
                         </button>
                         <button
-                          onClick={() => setShowTeamForm(false)}
+                          onClick={() => {
+                            setShowTeamForm(false);
+                            setEditingTeamMember(null);
+                            setTeamFormData({ name: "", role: "", photo: "", description: "" });
+                          }}
                           className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground py-2.5 rounded-lg"
                         >
                           Cancel
