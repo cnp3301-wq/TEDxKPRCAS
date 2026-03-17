@@ -551,7 +551,7 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
             name: teamFormData.name,
             role: teamFormData.role,
             photo: teamFormData.photo || "",
-            description: teamFormData.description || undefined,
+            description: teamFormData.description === "" ? null : teamFormData.description,
           },
         },
         {
@@ -573,7 +573,7 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
           name: teamFormData.name,
           role: teamFormData.role,
           photo: teamFormData.photo || "",
-          description: teamFormData.description || undefined,
+          description: teamFormData.description === "" ? null : teamFormData.description,
           order: teamMembers.length,
           is_active: true,
         },
@@ -2125,7 +2125,17 @@ const AdminPage = ({ onLogout }: { onLogout?: () => void }) => {
                       </div>
                       {/* Description */}
                       <div>
-                        <label className="block text-sm mb-2">Description</label>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="block text-sm">Description</label>
+                          {teamFormData.description && (
+                            <button
+                              onClick={() => setTeamFormData((prev) => ({ ...prev, description: "" }))}
+                              className="text-xs text-red-500 hover:text-red-600"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
                         <textarea
                           value={teamFormData.description}
                           onChange={(e) => setTeamFormData((prev) => ({ ...prev, description: e.target.value }))}
