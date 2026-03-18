@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
 import { useSpeakers } from "@/hooks/use-database";
+import { useState } from "react";
 
 interface iSpeaker {
   id: string;
@@ -11,7 +12,66 @@ interface iSpeaker {
   bio?: string;
 }
 
-const SpeakerCardNew = ({ speaker, index }: { speaker: iSpeaker; index: number }) => {
+const SpeakerModal = ({ speaker, isOpen, onClose }: { speaker: iSpeaker | null; isOpen: boolean; onClose: () => void }) => {
+  if (!isOpen || !speaker) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-white text-force-black rounded-3xl overflow-hidden shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 bg-tedx-red/10 hover:bg-tedx-red/20 rounded-full z-20 transition-colors"
+        >
+          <X className="w-6 h-6 text-tedx-red" />
+        </button>
+
+        {/* Speaker Image - Fixed */}
+        <div className="relative h-80 w-full flex-shrink-0 overflow-hidden">
+          {speaker.image ? (
+            <img
+              src={speaker.image}
+              alt={speaker.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-tedx-red/20 to-secondary/30 flex items-center justify-center text-8xl text-tedx-red/30">
+              {speaker.name.charAt(0)}
+            </div>
+          )}
+        </div>
+
+        {/* Speaker Info - Scrollable */}
+        <div className="overflow-y-auto flex-1 p-8 sm:p-10 text-force-black">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-force-black">{speaker.name}</h2>
+          <p className="text-lg sm:text-xl font-semibold mb-6 text-force-black">{speaker.role}</p>
+          
+          {speaker.bio ? (
+            <p className="text-base sm:text-lg leading-relaxed whitespace-pre-wrap text-force-black">
+              {speaker.bio}
+            </p>
+          ) : (
+            <p className="text-base text-force-black">No description available</p>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const SpeakerCardNew = ({ speaker, index, onCardClick }: { speaker: iSpeaker; index: number; onCardClick: (speaker: iSpeaker) => void }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -19,6 +79,7 @@ const SpeakerCardNew = ({ speaker, index }: { speaker: iSpeaker; index: number }
       viewport={{ once: true }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
       className="group cursor-pointer"
+      onClick={() => onCardClick(speaker)}
     >
       <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full relative">
         {/* Image Container with Wavy Bottom */}
@@ -70,6 +131,18 @@ const SpeakerCardNew = ({ speaker, index }: { speaker: iSpeaker; index: number }
 
 const SpeakersSection = () => {
   const { data: speakers = [], isLoading, isError, error } = useSpeakers();
+  const [selectedSpeaker, setSelectedSpeaker] = useState<iSpeaker | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSpeakerClick = (speaker: iSpeaker) => {
+    setSelectedSpeaker(speaker);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSpeaker(null);
+  };
 
   return (
     <section id="speakers" className="py-12 sm:py-16 md:py-24 bg-secondary/30 relative overflow-hidden">
@@ -210,12 +283,15 @@ const SpeakersSection = () => {
                     bio: speaker.bio || "",
                   }}
                   index={index}
+                  onCardClick={handleSpeakerClick}
                 />
               ))}
             </div>
           </motion.div>
         )}
       </div>
+
+      <SpeakerModal speaker={selectedSpeaker} isOpen={isModalOpen} onClose={handleCloseModal} />
     </section>
   );
 };
