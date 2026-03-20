@@ -321,22 +321,38 @@ const ThemeSection = () => {
               <div className="flex items-center gap-4 sm:gap-6">
                 <div className="text-center">
                   <span
-                    className="font-heading text-white leading-none block text-[10rem] sm:text-[12rem] md:text-[14rem] font-black"
-                    style={{ color: "#ffffff", textShadow: "0 0 20px rgba(216, 0, 39, 0.5), 2px 2px 0px #d80027" }}
+                    className="text-white leading-none block !font-black tracking-[0.1em]"
+                    style={{
+                      color: "#ffffff",
+                      fontSize: "clamp(12px, 3vw, 69px)",
+                      fontWeight: 400,
+                      textShadow: "0 0 20px rgba(216, 0, 39, 0.5), 2px 2px 0px #d80027",
+                    }}
                   >
                     {eventDay}
                   </span>
                   <span
-                    className="font-heading text-white leading-none block text-[7rem] sm:text-[8.5rem] md:text-[9.5rem] font-black"
-                    style={{ color: "#ffffff", textShadow: "0 0 20px rgba(216, 0, 39, 0.5), 2px 2px 0px #d80027" }}
+                    className="text-white leading-none block !font-black tracking-[0.12em]"
+                    style={{
+                      color: "#ffffff",
+                      fontSize: "clamp(12px, 2.3vw, 69px)",
+                      fontWeight: 400,
+                      textShadow: "0 0 20px rgba(216, 0, 39, 0.5), 2px 2px 0px #d80027",
+                    }}
                   >
                     {eventMonth}
                   </span>
                 </div>
                 <div className="w-[3px] h-32 sm:h-44 md:h-64 bg-white/30 rounded-full" />
                 <div
-                  className="font-heading text-white leading-none text-[8rem] sm:text-[9rem] md:text-[10rem] font-black"
-                  style={{ writingMode: "vertical-lr", color: "#ffffff", textShadow: "0 0 20px rgba(216, 0, 39, 0.5), 2px 2px 0px #d80027" }}
+                  className="text-white leading-none !font-black tracking-[0.1em]"
+                  style={{
+                    writingMode: "vertical-lr",
+                    color: "#ffffff",
+                    fontSize: "clamp(28px, 3.5vw, 57px)",
+                    fontWeight: 400,
+                    textShadow: "0 0 20px rgba(216, 0, 39, 0.5), 2px 2px 0px #d80027",
+                  }}
                 >
                   {eventYear}
                 </div>
