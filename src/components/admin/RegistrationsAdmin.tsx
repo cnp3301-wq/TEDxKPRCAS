@@ -287,6 +287,7 @@ We look forward to seeing you at the event!`);
       "Phone",
       "Payment Status",
       "UPI ID",
+      "Transaction ID",
       "Amount",
       "Registration Date",
     ];
@@ -297,6 +298,7 @@ We look forward to seeing you at the event!`);
       reg.phone || "",
       reg.payment_status,
       reg.user_upi_id || "",
+      reg.transaction_id || "",
       reg.payment_amount?.toString() || "",
       reg.created_at ? format(new Date(reg.created_at), "yyyy-MM-dd HH:mm") : "",
     ]);
@@ -543,6 +545,11 @@ We look forward to seeing you at the event!`);
                           UPI: {reg.user_upi_id}
                         </div>
                       )}
+                      {reg.transaction_id && (
+                        <div className="text-xs text-muted-foreground">
+                          Txn: {reg.transaction_id}
+                        </div>
+                      )}
                     </td>
                     <td className="p-4">
                       <div className="text-sm">{reg.email}</div>
@@ -778,6 +785,10 @@ We look forward to seeing you at the event!`);
                   <div>
                     <Label className="text-xs text-muted-foreground">User UPI ID</Label>
                     <p className="font-medium">{selectedRegistration.user_upi_id || "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Transaction ID</Label>
+                    <p className="font-medium">{selectedRegistration.transaction_id || "-"}</p>
                   </div>
                   {selectedRegistration.payment_verified_at && (
                     <div>
