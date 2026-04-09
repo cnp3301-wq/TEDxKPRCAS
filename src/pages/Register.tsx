@@ -71,8 +71,11 @@ const Register = () => {
   const isEmailConfigured = !!(smtpHost && smtpUser);
 
   // Check if registrations are closed
-  const { data: registrationsClosed } = useSiteSetting("registrations_closed");
+  const { data: registrationsClosedData } = useSiteSetting("registrations_closed");
   const { data: registrationsClosedMessage } = useSiteSetting("registrations_closed_message");
+  
+  // Convert string to boolean (Supabase returns strings, need to check for "true")
+  const registrationsClosed = registrationsClosedData === "true";
 
   // Filter form fields based on selected user type
   const filteredFormFields = useMemo(() => {
