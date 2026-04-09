@@ -78,6 +78,8 @@ const RegistrationsAdmin = ({ showNotification }: Props) => {
   const [registrationIncludeYear, setRegistrationIncludeYear] = useState(true);
   const [registrationRandomLength, setRegistrationRandomLength] = useState(6);
   const [registrationCharset, setRegistrationCharset] = useState<"ALNUM" | "NUM">("ALNUM");
+  const [isClosingRegistrations, setIsClosingRegistrations] = useState(false);
+  const [closedMessage, setClosedMessage] = useState("");
   
   // Email compose state
   const [emailMessage, setEmailMessage] = useState(`Congratulations! Your payment has been verified and your registration is now confirmed.
@@ -112,6 +114,8 @@ We look forward to seeing you at the event!`);
   const { data: registrationCodeIncludeYear } = useSiteSetting("registration_code_include_year");
   const { data: registrationCodeRandomLength } = useSiteSetting("registration_code_random_length");
   const { data: registrationCodeCharset } = useSiteSetting("registration_code_charset");
+  const { data: registrationsClosed } = useSiteSetting("registrations_closed");
+  const { data: registrationsClosedMsg } = useSiteSetting("registrations_closed_message");
   const { mutate: updateSiteSetting } = useUpdateSiteSetting();
 
   // Email settings (check if email is configured)
@@ -138,6 +142,16 @@ We look forward to seeing you at the event!`);
       if (opt === "NUM" || opt === "ALNUM") setRegistrationCharset(opt as "ALNUM" | "NUM");
     }
   }, [registrationCodeSetting, registrationCodeIncludeYear, registrationCodeRandomLength, registrationCodeCharset]);
+
+  // Sync registration closed status from site settings
+  useEffect(() => {
+    if (registrationsClosed !== undefined) {
+      setIsClosingRegistrations(registrationsClosed === "true");
+    }
+    if (registrationsClosedMsg) {
+      setClosedMessage(registrationsClosedMsg);
+    }
+  }, [registrationsClosed, registrationsClosedMsg]);
 
   // Search by registration code
   const handleCodeSearch = () => {
@@ -168,6 +182,16 @@ We look forward to seeing you at the event!`);
     updateSiteSetting({ key: "registration_code_random_length", value: String(registrationRandomLength) });
     updateSiteSetting({ key: "registration_code_charset", value: registrationCharset });
     showNotification("success", "Registration ID settings updated");
+  };
+
+  const saveRegistrationStatus = () => {
+    updateSiteSetting({ key: "registrations_closed", value: isClosingRegistrations ? "true" : "false" });
+    if (isClosingRegistrations && !closedMessage.trim()) {
+      updateSiteSetting({ key: "registrations_closed_message", value: "Registration for this event is currently closed. Thank you for your interest!" });
+    } else {
+      updateSiteSetting({ key: "registrations_closed_message", value: closedMessage });
+    }
+    showNotification("success", isClosingRegistrations ? "Registrations closed" : "Registrations opened");
   };
 
   // Filtered registrations
@@ -409,6 +433,59 @@ We look forward to seeing you at the event!`);
 
   return (
     <div className="space-y-6">
+      {/* Open/Close Registration Status */}
+      <div className="bg-gradient-to-r from-tedx-red/5 to-orange-500/5 rounded-xl border border-tedx-red/20 p-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-lg">Registration Status</h3>
+              <p className="text-sm text-muted-foreground mt-1">Open or close event registrations for new participants</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsClosingRegistrations(!isClosingRegistrations)}
+                className={cn(
+                  "relative inline-flex h-8 w-14 items-center rounded-full transition-colors",
+                  isClosingRegistrations
+                    ? "bg-tedx-red/20 border border-tedx-red"
+                    : "bg-green-500/20 border border-green-500"
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform",
+                    isClosingRegistrations ? "translate-x-1" : "translate-x-7"
+                  )}
+                />
+              </button>
+              <span className={cn("font-semibold text-sm", isClosingRegistrations ? "text-tedx-red" : "text-green-500")}>
+                {isClosingRegistrations ? "CLOSED" : "OPEN"}
+              </span>
+            </div>
+          </div>
+
+          {isClosingRegistrations && (
+            <div className="space-y-2">
+              <Label className="text-sm">Closed Registration Message</Label>
+              <textarea
+                value={closedMessage}
+                onChange={(e) => setClosedMessage(e.target.value)}
+                placeholder="Enter the message to display when registrations are closed..."
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-tedx-red"
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                This message will be displayed on the registration page when registrations are closed.
+              </p>
+            </div>
+          )}
+
+          <Button onClick={saveRegistrationStatus} className="bg-tedx-red hover:bg-tedx-red/90 w-full">
+            {isClosingRegistrations ? "Close Registrations" : "Open Registrations"}
+          </Button>
+        </div>
+      </div>
+
       {/* Registration ID prefix */}
       <div className="bg-card rounded-lg border p-4">
         <div className="flex flex-col sm:flex-row sm:items-end gap-3">
