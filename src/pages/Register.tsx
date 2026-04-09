@@ -411,21 +411,25 @@ const Register = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-8 p-4 bg-red-100 border-2 border-red-500 rounded-lg"
+              className="mt-20 p-6 bg-red-100 border-2 border-red-500 rounded-lg max-w-md mx-auto text-center"
             >
-              <div className="flex items-center gap-3">
-                <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
-                <div>
-                  <h2 className="font-bold text-red-900">Registrations Closed</h2>
-                  <p className="text-red-800 text-sm mt-1">
-                    {registrationsClosedMessage || "Registration for this event is currently closed. Thank you for your interest!"}
-                  </p>
-                </div>
+              <div className="flex justify-center mb-4">
+                <AlertCircle className="h-12 w-12 text-red-600" />
+              </div>
+              <div>
+                <h2 className="font-bold text-red-900 text-2xl mb-2">Registrations Closed</h2>
+                <p className="text-red-800 text-base">
+                  {registrationsClosedMessage || "Registration for this event is currently closed. Thank you for your interest!"}
+                </p>
               </div>
             </motion.div>
           )}
-          {/* Step Indicator */}
-          <div className="flex items-center justify-center gap-2 mb-8">
+
+          {/* Show Form Only if Registrations Are Open */}
+          {!registrationsClosed && (
+            <>
+              {/* Step Indicator */}
+              <div className="flex items-center justify-center gap-2 mb-8">
             {["form", "payment", "upload", "success"].map((s, i) => (
               <div key={s} className="flex items-center">
                 <div
@@ -860,6 +864,8 @@ const Register = () => {
               </motion.div>
             )}
           </AnimatePresence>
+            </>
+          )}
         </div>
       </main>
     </div>
