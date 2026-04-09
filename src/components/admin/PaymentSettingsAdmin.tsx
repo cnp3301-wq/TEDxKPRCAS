@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Upload, QrCode, CreditCard, Loader2, FileSpreadsheet, ExternalLink, Info, RefreshCw } from "lucide-react";
+import { Upload, QrCode, CreditCard, Loader2, FileSpreadsheet, ExternalLink, Info, RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -28,6 +29,8 @@ const PaymentSettingsAdmin = ({ showNotification }: Props) => {
   const [isUploading, setIsUploading] = useState(false);
   const [sheetUrl, setSheetUrl] = useState("");
   const [showSheetHelp, setShowSheetHelp] = useState(false);
+  const [registrationsClosed, setRegistrationsClosed] = useState(false);
+  const [registrationsClosedMessage, setRegistrationsClosedMessage] = useState("");
 
   // Database hooks
   const { data: paymentSettings, isLoading } = usePaymentSettings();
@@ -36,6 +39,8 @@ const PaymentSettingsAdmin = ({ showNotification }: Props) => {
   
   // Google Sheet settings
   const { data: savedSheetUrl } = useSiteSetting("google_sheet_webhook_url");
+  const { data: savedRegistrationsClosed } = useSiteSetting("registrations_closed");
+  const { data: savedRegistrationsClosedMessage } = useSiteSetting("registrations_closed_message");
   const { mutate: updateSiteSetting, isPending: isSavingSheet } = useUpdateSiteSetting();
 
   // Generate UPI payment string for QR code
@@ -72,6 +77,20 @@ const PaymentSettingsAdmin = ({ showNotification }: Props) => {
     }
   }, [savedSheetUrl]);
 
+  // Load Registrations Closed Setting
+  useEffect(() => {
+    if (savedRegistrationsClosed !== undefined) {
+      setRegistrationsClosed(savedRegistrationsClosed === true || savedRegistrationsClosed === "true");
+    }
+  }, [savedRegistrationsClosed]);
+
+  // Load Registrations Closed Message
+  useEffect(() => {
+    if (savedRegistrationsClosedMessage !== undefined) {
+      setRegistrationsClosedMessage(savedRegistrationsClosedMessage || "");
+    }
+  }, [savedRegistrationsClosedMessage]);
+
   // Save Google Sheet URL
   const handleSaveSheetUrl = () => {
     updateSiteSetting(
@@ -79,6 +98,35 @@ const PaymentSettingsAdmin = ({ showNotification }: Props) => {
       {
         onSuccess: () => showNotification("success", "Google Sheet URL saved"),
         onError: () => showNotification("error", "Failed to save Google Sheet URL"),
+      }
+    );
+  };
+
+  // Toggle Registration Closed
+  const handleToggleRegistrationsClosed = () => {
+    const newValue = !registrationsClosed;
+    setRegistrationsClosed(newValue);
+    updateSiteSetting(
+      { key: "registrations_closed", value: newValue },
+      {
+        onSuccess: () => {
+          showNotification(
+            "success",
+            newValue ? "Registrations closed successfully" : "Registrations opened successfully"
+          );
+        },
+        onError: () => showNotification("error", "Failed to update registration status"),
+      }
+    );
+  };
+
+  // Save Registrations Closed Message
+  const handleSaveClosedMessage = () => {
+    updateSiteSetting(
+      { key: "registrations_closed_message", value: registrationsClosedMessage },
+      {
+        onSuccess: () => showNotification("success", "Closed message updated successfully"),
+        onError: () => showNotification("error", "Failed to save closed message"),
       }
     );
   };
@@ -367,6 +415,86 @@ const PaymentSettingsAdmin = ({ showNotification }: Props) => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Registration Status Banner */}
+      <div className="border-t pt-6 mt-6">
+        <div className="flex items-center justify-between p-4 bg-card border-2 border-border rounded-lg mb-4">
+          <div className="flex items-start gap-3">
+            <div className={cn(
+              "p-2 rounded-full mt-0.5",
+              registrationsClosed ? "bg-red-100" : "bg-green-100"
+            )}>
+              <AlertCircle className={cn(
+                "w-5 h-5",
+                registrationsClosed ? "text-red-600" : "text-green-600"
+              )} />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">
+                {registrationsClosed ? "Registrations Closed" : "Registrations Open"}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {registrationsClosed
+                  ? "New registrations are currently disabled. Users will see a closed banner on the registration page."
+                  : "New registrations are currently enabled. Users can register normally."}
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleToggleRegistrationsClosed}
+            className={cn(
+              "ml-4 whitespace-nowrap",
+              registrationsClosed
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-red-600 hover:bg-red-700"
+            )}
+          >
+            {registrationsClosed ? "Open Registrations" : "Close Registrations"}
+          </Button>
+        </div>
+
+        {/* Custom Closed Message */}
+        {registrationsClosed && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-muted/50 rounded-lg p-4 space-y-4 border border-border"
+          >
+            <div>
+              <h4 className="font-semibold text-sm mb-2">Customize Closed Message</h4>
+              <p className="text-xs text-muted-foreground mb-3">
+                This message will be displayed to users when they visit the registration page
+              </p>
+              <textarea
+                value={registrationsClosedMessage}
+                onChange={(e) => setRegistrationsClosedMessage(e.target.value)}
+                placeholder="Registration for this event is currently closed. Thank you for your interest!"
+                className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            {/* Message Preview */}
+            <div className="bg-red-100 border-2 border-red-500 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-red-900 text-sm">Registrations Closed</p>
+                  <p className="text-red-800 text-sm mt-1">
+                    {registrationsClosedMessage || "Registration for this event is currently closed. Thank you for your interest!"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSaveClosedMessage}
+              className="w-full bg-primary"
+            >
+              Save Message
+            </Button>
+          </motion.div>
+        )}
       </div>
 
       {/* Google Sheet Integration */}

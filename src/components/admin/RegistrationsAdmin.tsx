@@ -278,39 +278,91 @@ We look forward to seeing you at the event!`);
     });
   };
 
-  // Export to CSV
+  // Export to CSV - Enhanced with all details
   const handleExport = () => {
+    // Get all unique form field keys from all registrations
+    const formFieldKeys = new Set<string>();
+    filteredRegistrations.forEach((reg) => {
+      if (reg.form_data && typeof reg.form_data === "object") {
+        Object.keys(reg.form_data).forEach((key) => formFieldKeys.add(key));
+      }
+    });
+    const sortedFormFields = Array.from(formFieldKeys).sort();
+
+    // Base headers
     const headers = [
+      "Reg. #",
       "Registration Code",
       "Name",
       "Email",
       "Phone",
+      "User Type",
+      "Registration Status",
       "Payment Status",
+      "Amount",
       "UPI ID",
       "Transaction ID",
-      "Amount",
+      "Payment Verified At",
+      "Payment Verified By",
+      "Rejection Reason",
       "Registration Date",
+      "Last Updated",
+      ...sortedFormFields.map((field) => `Form: ${field}`),
     ];
-    const rows = filteredRegistrations.map((reg) => [
-      reg.registration_code || "",
-      reg.name,
-      reg.email,
-      reg.phone || "",
-      reg.payment_status,
-      reg.user_upi_id || "",
-      reg.transaction_id || "",
-      reg.payment_amount?.toString() || "",
-      reg.created_at ? format(new Date(reg.created_at), "yyyy-MM-dd HH:mm") : "",
-    ]);
 
-    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    const rows = filteredRegistrations.map((reg) => {
+      const baseRow = [
+        reg.registration_number?.toString() || "",
+        reg.registration_code || "",
+        reg.name,
+        reg.email,
+        reg.phone || "",
+        reg.user_type || "",
+        reg.registration_status || "",
+        reg.payment_status,
+        reg.payment_amount?.toString() || "",
+        reg.user_upi_id || "",
+        reg.transaction_id || "",
+        reg.payment_verified_at ? format(new Date(reg.payment_verified_at), "yyyy-MM-dd HH:mm") : "",
+        reg.payment_verified_by || "",
+        reg.rejection_reason || "",
+        reg.created_at ? format(new Date(reg.created_at), "yyyy-MM-dd HH:mm") : "",
+        reg.updated_at ? format(new Date(reg.updated_at), "yyyy-MM-dd HH:mm") : "",
+      ];
+
+      // Add form field values
+      const formDataRow = sortedFormFields.map((field) => {
+        const value = reg.form_data?.[field];
+        return typeof value === "object" ? JSON.stringify(value) : (value || "");
+      });
+
+      return [...baseRow, ...formDataRow];
+    });
+
+    // Escape CSV values (handle commas, quotes, newlines)
+    const escapeCsvValue = (value: string): string => {
+      if (value === null || value === undefined) return '""';
+      const stringValue = String(value);
+      if (stringValue.includes('"') || stringValue.includes(",") || stringValue.includes("\n")) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
+    const csv = [
+      headers.map(escapeCsvValue).join(","),
+      ...rows.map((row) => row.map(escapeCsvValue).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `registrations-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `registrations-complete-${format(new Date(), "yyyy-MM-dd-HHmmss")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+
+    showNotification("success", `Exported ${filteredRegistrations.length} registrations to CSV`);
   };
 
   // Get payment status badge

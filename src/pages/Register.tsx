@@ -70,6 +70,10 @@ const Register = () => {
   const { data: smtpUser } = useSiteSetting("smtp_user");
   const isEmailConfigured = !!(smtpHost && smtpUser);
 
+  // Check if registrations are closed
+  const { data: registrationsClosed } = useSiteSetting("registrations_closed");
+  const { data: registrationsClosedMessage } = useSiteSetting("registrations_closed_message");
+
   // Filter form fields based on selected user type
   const filteredFormFields = useMemo(() => {
     if (!userType) return [];
@@ -402,6 +406,24 @@ const Register = () => {
       {/* Main Content */}
       <main className="pt-20 pb-12 px-4">
         <div className="max-w-lg mx-auto">
+          {/* Registrations Closed Banner */}
+          {registrationsClosed && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 p-4 bg-red-100 border-2 border-red-500 rounded-lg"
+            >
+              <div className="flex items-center gap-3">
+                <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                <div>
+                  <h2 className="font-bold text-red-900">Registrations Closed</h2>
+                  <p className="text-red-800 text-sm mt-1">
+                    {registrationsClosedMessage || "Registration for this event is currently closed. Thank you for your interest!"}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
           {/* Step Indicator */}
           <div className="flex items-center justify-center gap-2 mb-8">
             {["form", "payment", "upload", "success"].map((s, i) => (
@@ -518,12 +540,17 @@ const Register = () => {
                   <Button
                     type="submit"
                     className="w-full bg-tedx-red hover:bg-tedx-dark-red"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || registrationsClosed}
                   >
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Submitting...
+                      </>
+                    ) : registrationsClosed ? (
+                      <>
+                        <AlertCircle className="mr-2 h-4 w-4" />
+                        Registrations Closed
                       </>
                     ) : (
                       <>
